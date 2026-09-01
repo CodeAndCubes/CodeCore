@@ -25,7 +25,7 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 
 @Mod(
     modid = CoreConstants.MODID,
@@ -97,7 +97,7 @@ public final class CodeCoreMod {
     }
 
     @Mod.EventHandler
-    public void serverStopping(FMLServerStoppingEvent event) {
+    public void serverStopped(FMLServerStoppedEvent event) {
         runtime.detachWorld();
     }
 }
