@@ -3,6 +3,7 @@ package com.mrleonardos.codecore.internal;
 import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.internal.permission.BuiltinPermissions;
 import com.mrleonardos.codecore.internal.permission.PermissionRole;
+import com.mrleonardos.codecore.internal.permission.adapter.ForgeEssentialsAdapter;
 import com.mrleonardos.codecore.internal.permission.adapter.LuckPermsAdapter;
 import com.mrleonardos.codecore.internal.permission.adapter.UltraMineAdapter;
 
@@ -22,5 +23,6 @@ public final class BuiltinRoles {
         adapters.offer(new BuiltinPermissions(sections.permissions()));
         adapters.offer(new LuckPermsAdapter());
         adapters.offer(new UltraMineAdapter());
+        adapters.offer(new ForgeEssentialsAdapter());
     }
 }
