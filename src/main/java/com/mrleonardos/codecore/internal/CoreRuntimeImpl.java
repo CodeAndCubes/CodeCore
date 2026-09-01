@@ -5,14 +5,16 @@ import java.nio.file.Path;
 import org.apache.logging.log4j.Logger;
 
 import com.mrleonardos.codecore.api.CoreRuntime;
+import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.api.command.CommandService;
 import com.mrleonardos.codecore.api.config.ConfigService;
 import com.mrleonardos.codecore.api.net.NetworkService;
 import com.mrleonardos.codecore.api.service.ServiceRegistry;
 import com.mrleonardos.codecore.api.util.Scheduler;
+import com.mrleonardos.codecore.internal.adapter.AdapterRegistryImpl;
 import com.mrleonardos.codecore.internal.command.CommandServiceImpl;
 import com.mrleonardos.codecore.internal.config.ConfigPaths;
-import com.mrleonardos.codecore.internal.config.JsonConfigService;
+import com.mrleonardos.codecore.internal.config.ConfigServiceImpl;
 import com.mrleonardos.codecore.internal.net.NetworkServiceImpl;
 import com.mrleonardos.codecore.internal.schedule.MainThreadQueue;
 import com.mrleonardos.codecore.internal.schedule.SchedulerImpl;
@@ -27,7 +29,9 @@ public final class CoreRuntimeImpl implements CoreRuntime {
     private static final String CLIENT_QUEUE = "client";
 
     private final ServiceRegistryImpl services;
-    private final JsonConfigService configs;
+    private final ConfigServiceImpl configs;
+    private final CoreSections sections;
+    private final AdapterRegistryImpl adapters;
     private final MainThreadQueue serverQueue;
     private final MainThreadQueue clientQueue;
     private final SchedulerImpl scheduler;
@@ -37,7 +41,9 @@ public final class CoreRuntimeImpl implements CoreRuntime {
 
     public CoreRuntimeImpl(Path configDirectory, Logger log) {
         this.services = new ServiceRegistryImpl(log);
-        this.configs = new JsonConfigService(new ConfigPaths(configDirectory), log);
+        this.configs = new ConfigServiceImpl(new ConfigPaths(configDirectory), log);
+        this.sections = new CoreSections(configs);
+        this.adapters = new AdapterRegistryImpl(services, log);
         this.serverQueue = new MainThreadQueue(SERVER_QUEUE, log);
         this.clientQueue = new MainThreadQueue(CLIENT_QUEUE, log);
         this.scheduler = new SchedulerImpl(serverQueue, clientQueue);
@@ -49,6 +55,11 @@ public final class CoreRuntimeImpl implements CoreRuntime {
     @Override
     public ServiceRegistry services() {
         return services;
+    }
+
+    @Override
+    public AdapterRegistry adapters() {
+        return adapters;
     }
 
     @Override
@@ -71,6 +82,11 @@ public final class CoreRuntimeImpl implements CoreRuntime {
         return commands;
     }
 
+    /** Секции главного файла, которые объявило ядро. */
+    public CoreSections sections() {
+        return sections;
+    }
+
     /** Отдать накопленные команды стартующему серверу. */
     public void installCommands(FMLServerStartingEvent event) {
         commands.installAll(event);
@@ -81,8 +97,17 @@ public final class CoreRuntimeImpl implements CoreRuntime {
         return tickDriver;
     }
 
-    /** Закрывает приём регистраций: вызывается ядром в конце загрузки модов. */
+    /**
+     * Закрывает приём регистраций: вызывается ядром в конце загрузки модов.
+     *
+     * <p>
+     * Порядок жёсткий: сначала решаются роли, потому что победитель каждой из них ещё регистрирует свои
+     * реализации, затем пишется главный файл со всеми объявленными секциями и ролями, и только потом
+     * реестр сервисов замораживается.
+     */
     public void freeze() {
+        adapters.decide(configs.main());
+        configs.seal(adapters.roles());
         services.freeze();
     }
 

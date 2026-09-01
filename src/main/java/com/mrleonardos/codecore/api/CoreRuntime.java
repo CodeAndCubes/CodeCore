@@ -1,5 +1,6 @@
 package com.mrleonardos.codecore.api;
 
+import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.api.command.CommandService;
 import com.mrleonardos.codecore.api.config.ConfigService;
 import com.mrleonardos.codecore.api.net.NetworkService;
@@ -18,7 +19,10 @@ public interface CoreRuntime {
     /** Реестр сервисов ядра. */
     ServiceRegistry services();
 
-    /** Файлы настроек: json со схемой, миграциями и атомарной записью. */
+    /** Реестр адаптеров: владелец каждой области ответственности. */
+    AdapterRegistry adapters();
+
+    /** Файлы настроек: toml со схемой, миграциями и атомарной записью. */
     ConfigService configs();
 
     /** Сетевые каналы модов. */

@@ -6,8 +6,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.mrleonardos.codecore.api.config.ConfigData;
 import com.mrleonardos.codecore.api.config.Migration;
 
 /**
@@ -30,9 +29,9 @@ public final class MigrationRunner {
      * текущим классом можно, а переписывать ими файл нельзя, иначе поля, которых ждали пропущенные шаги,
      * исчезнут с диска.
      */
-    public static MigrationOutcome run(JsonObject data, List<Migration> migrations, int targetVersion, String fileName,
+    public static MigrationOutcome run(ConfigData data, List<Migration> migrations, int targetVersion, String fileName,
         Logger log) {
-        int current = readVersion(data, targetVersion);
+        int current = data.integer(ConfigKeys.SCHEMA_VERSION, 1);
         if (current == targetVersion) {
             return MigrationOutcome.UNCHANGED;
         }
@@ -59,20 +58,8 @@ public final class MigrationRunner {
             current = migration.to();
         }
 
-        data.addProperty(ConfigKeys.SCHEMA_VERSION, current);
+        data.set(ConfigKeys.SCHEMA_VERSION, (long) current);
         return complete ? MigrationOutcome.MIGRATED : MigrationOutcome.INCOMPLETE;
-    }
-
-    private static int readVersion(JsonObject data, int fallback) {
-        JsonElement stored = data.get(ConfigKeys.SCHEMA_VERSION);
-        if (stored == null || !stored.isJsonPrimitive()) {
-            return 1;
-        }
-        try {
-            return stored.getAsInt();
-        } catch (NumberFormatException malformed) {
-            return fallback;
-        }
     }
 
     private static Map<Integer, Migration> index(List<Migration> migrations, String fileName, Logger log) {

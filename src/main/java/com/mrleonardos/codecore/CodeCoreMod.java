@@ -8,14 +8,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mrleonardos.codecore.api.CodeApi;
+import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.config.ConfigScope;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
-import com.mrleonardos.codecore.internal.BuiltinServices;
+import com.mrleonardos.codecore.internal.BuiltinRoles;
 import com.mrleonardos.codecore.internal.CoreRuntimeImpl;
 import com.mrleonardos.codecore.internal.SideSetup;
 import com.mrleonardos.codecore.internal.avatar.AvatarConfigSender;
 import com.mrleonardos.codecore.internal.avatar.AvatarSettings;
 import com.mrleonardos.codecore.internal.command.CoreCommands;
+import com.mrleonardos.codecore.internal.config.LegacyLayout;
 import com.mrleonardos.codecore.internal.net.CorePackets;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -52,6 +54,10 @@ public final class CodeCoreMod {
                 .toPath(),
             LOG);
         CodeApi.install(runtime);
+        LegacyLayout.report(
+            event.getModConfigurationDirectory()
+                .toPath(),
+            LOG);
         FMLCommonHandler.instance()
             .bus()
             .register(runtime.tickDriver());
@@ -61,7 +67,7 @@ public final class CodeCoreMod {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        BuiltinServices.register(LOG);
+        BuiltinRoles.install(runtime.adapters(), runtime.sections());
         CodeApi.commands()
             .register(CoreCommands.root());
         FMLCommonHandler.instance()
@@ -75,6 +81,7 @@ public final class CodeCoreMod {
 
     private static ConfigSpec<AvatarSettings> avatarSpec() {
         return ConfigSpec.of(CoreConstants.MODID, AVATARS_FILE, AvatarSettings.class)
+            .role(ConfigRoles.CORE)
             .scope(ConfigScope.SETTINGS)
             .build();
     }

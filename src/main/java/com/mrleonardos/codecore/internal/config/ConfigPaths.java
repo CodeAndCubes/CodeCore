@@ -2,6 +2,7 @@ package com.mrleonardos.codecore.internal.config;
 
 import java.nio.file.Path;
 
+import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.config.ConfigScope;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
 
@@ -31,14 +32,39 @@ public final class ConfigPaths {
         return worldDirectory != null;
     }
 
-    /** Папка настроек мода — основание для всего, что мод хранит рядом с конфигом. */
-    public Path modDirectory(String modid) {
-        return configDirectory.resolve(modid);
+    /** Папка игры с конфигами: в ней лежит и папка линейки, и папки прежней раскладки. */
+    public Path configDirectory() {
+        return configDirectory;
+    }
+
+    /** Папка линейки: {@code config/code}. */
+    public Path lineup() {
+        return configDirectory.resolve(ConfigKeys.LINEUP_DIRECTORY);
+    }
+
+    /** Главный файл линейки. */
+    public Path mainFile() {
+        return lineup().resolve(ConfigKeys.MAIN_FILE);
+    }
+
+    /** Папка области ответственности: {@code config/code/<роль>}. */
+    public Path roleDirectory(String role) {
+        return lineup().resolve(ConfigRoles.check(role));
     }
 
     /** Нужен ли этому файлу загруженный мир. */
     public boolean needsWorld(ConfigSpec<?> spec) {
         return spec.scope() == ConfigScope.WORLD_STATE;
+    }
+
+    /** Имя файла: {@code <владелец>.toml} или {@code <владелец>-<имя>.<расширение>}. */
+    public static String fileName(ConfigSpec<?> spec) {
+        String owner = ConfigOwners.of(spec.modid());
+        String suffix = spec.name()
+            .isEmpty() ? "" : ConfigKeys.NAME_SEPARATOR + spec.name();
+        return owner + suffix
+            + spec.format()
+                .extension();
     }
 
     /**
@@ -47,24 +73,23 @@ public final class ConfigPaths {
      * @throws IllegalStateException если файл принадлежит миру, а мир не загружен
      */
     public Path resolve(ConfigSpec<?> spec) {
-        String fileName = spec.name() + ConfigKeys.FILE_EXTENSION;
+        String role = ConfigRoles.check(spec.role());
+        String fileName = fileName(spec);
         switch (spec.scope()) {
             case SETTINGS:
-                return configDirectory.resolve(spec.modid())
+                return lineup().resolve(role)
                     .resolve(fileName);
             case CLIENT:
-                return configDirectory.resolve(spec.modid())
+                return lineup().resolve(role)
                     .resolve(ConfigKeys.CLIENT_DIRECTORY)
                     .resolve(fileName);
             case WORLD_STATE:
                 if (worldDirectory == null) {
                     throw new IllegalStateException(
-                        "World state config " + spec.modid()
-                            + "/"
-                            + spec.name()
-                            + " requested while no world is loaded");
+                        "World state config " + role + "/" + fileName + " requested while no world is loaded");
                 }
-                return worldDirectory.resolve(spec.modid())
+                return worldDirectory.resolve(ConfigKeys.LINEUP_DIRECTORY)
+                    .resolve(role)
                     .resolve(fileName);
             default:
                 throw new IllegalArgumentException("Unknown config scope " + spec.scope());

@@ -6,6 +6,11 @@ package com.mrleonardos.codecore.api.client.image;
  * <p>
  * Адрес картинки задаёт конфиг, а по адресу может лежать что угодно: гигабайтный файл, изображение
  * 30000×30000 или бесконечный поток. Поэтому ограничен и объём, и размер в пикселях, и время ожидания.
+ *
+ * <p>
+ * Константы это заводские потолки безопасности. Секция {@code [images]} главного файла умеет только
+ * опустить их: настройка, поднимающая потолок, зажимается обратно с записью в лог. Действующие значения
+ * берутся из {@link #current()}.
  */
 public final class ImageLimits {
 
@@ -39,5 +44,79 @@ public final class ImageLimits {
      */
     public static final int MAX_HANDLES = 256;
 
-    private ImageLimits() {}
+    private static volatile ImageLimits current = factory();
+
+    private final int maxBytes;
+    private final int maxSourcePixels;
+    private final int maxSize;
+    private final int maxHandles;
+    private final int connectTimeoutMs;
+    private final int readTimeoutMs;
+
+    public ImageLimits(int maxBytes, int maxSourcePixels, int maxSize, int maxHandles, int connectTimeoutMs,
+        int readTimeoutMs) {
+        this.maxBytes = maxBytes;
+        this.maxSourcePixels = maxSourcePixels;
+        this.maxSize = maxSize;
+        this.maxHandles = maxHandles;
+        this.connectTimeoutMs = connectTimeoutMs;
+        this.readTimeoutMs = readTimeoutMs;
+    }
+
+    /** Заводские потолки: то, что действует, пока конфиг не прочитан. */
+    public static ImageLimits factory() {
+        return new ImageLimits(
+            MAX_BYTES,
+            MAX_SOURCE_PIXELS,
+            MAX_SIZE,
+            MAX_HANDLES,
+            CONNECT_TIMEOUT_MS,
+            READ_TIMEOUT_MS);
+    }
+
+    /** Действующие пределы: заводские потолки, опущенные настройками. */
+    public static ImageLimits current() {
+        return current;
+    }
+
+    /**
+     * Подставить пределы из конфига. Зовётся ядром один раз при готовности клиентской стороны.
+     *
+     * <p>
+     * Читают их фоновые потоки загрузки, поэтому ссылка {@code volatile}: запись видна им сразу, а
+     * читаются шесть чисел одного объекта, а не шесть полей вразнобой.
+     */
+    public static void install(ImageLimits limits) {
+        current = limits;
+    }
+
+    /** Максимум байт по одному адресу. */
+    public int maxBytes() {
+        return maxBytes;
+    }
+
+    /** Максимум пикселей в исходной картинке. */
+    public int maxSourcePixels() {
+        return maxSourcePixels;
+    }
+
+    /** Наибольшая сторона готовой картинки. */
+    public int maxSize() {
+        return maxSize;
+    }
+
+    /** Сколько картинок держится в памяти одновременно. */
+    public int maxHandles() {
+        return maxHandles;
+    }
+
+    /** Сколько ждать соединения. */
+    public int connectTimeoutMs() {
+        return connectTimeoutMs;
+    }
+
+    /** Сколько ждать данных. */
+    public int readTimeoutMs() {
+        return readTimeoutMs;
+    }
 }

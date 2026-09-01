@@ -34,9 +34,10 @@ final class ImageFetcher {
     }
 
     private static byte[] download(String address) throws IOException {
+        ImageLimits limits = ImageLimits.current();
         HttpURLConnection connection = (HttpURLConnection) new URL(address).openConnection();
-        connection.setConnectTimeout(ImageLimits.CONNECT_TIMEOUT_MS);
-        connection.setReadTimeout(ImageLimits.READ_TIMEOUT_MS);
+        connection.setConnectTimeout(limits.connectTimeoutMs());
+        connection.setReadTimeout(limits.readTimeoutMs());
         connection.setRequestProperty(USER_AGENT_HEADER, USER_AGENT);
         connection.setRequestProperty(ACCEPT_HEADER, ACCEPT);
         connection.setInstanceFollowRedirects(true);
@@ -45,11 +46,11 @@ final class ImageFetcher {
             if (connection.getResponseCode() != HTTP_OK) {
                 throw new IOException("Unexpected response " + connection.getResponseCode() + " from " + address);
             }
-            if (connection.getContentLength() > ImageLimits.MAX_BYTES) {
+            if (connection.getContentLength() > limits.maxBytes()) {
                 throw new IOException("Image at " + address + " declares " + connection.getContentLength() + " bytes");
             }
             try (InputStream stream = connection.getInputStream()) {
-                return LimitedStream.readAll(stream, ImageLimits.MAX_BYTES, address);
+                return LimitedStream.readAll(stream, limits.maxBytes(), address);
             }
         } finally {
             connection.disconnect();
@@ -57,11 +58,13 @@ final class ImageFetcher {
     }
 
     private static byte[] read(Path path) throws IOException {
+        int maxBytes = ImageLimits.current()
+            .maxBytes();
         if (!Files.isRegularFile(path)) {
             throw new IOException("No image file at " + path);
         }
-        if (Files.size(path) > ImageLimits.MAX_BYTES) {
-            throw new IOException("Image file " + path + " is larger than " + ImageLimits.MAX_BYTES + " bytes");
+        if (Files.size(path) > maxBytes) {
+            throw new IOException("Image file " + path + " is larger than " + maxBytes + " bytes");
         }
         return Files.readAllBytes(path);
     }

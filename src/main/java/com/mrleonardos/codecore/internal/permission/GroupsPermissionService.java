@@ -15,7 +15,7 @@ import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.api.service.PermissionService;
 
 /**
- * Права по группам из json.
+ * Права по группам из файла.
  *
  * <p>
  * Порядок разбора идёт от частного к общему: личные правила игрока, затем его группа, затем то, что она
@@ -23,22 +23,25 @@ import com.mrleonardos.codecore.api.service.PermissionService;
  * групповым разрешением.
  *
  * <p>
- * Внутри источника выигрывает самое точное правило, а при равной точности — запрет. Это привычная логика:
+ * Внутри источника выигрывает самое точное правило, а при равной точности запрет. Это привычная логика:
  * выдать {@code codechat.*} и отдельно отобрать {@code codechat.create}.
  */
-public final class JsonPermissionService implements PermissionService {
+public final class GroupsPermissionService implements PermissionService {
 
-    private final ConfigFile<PermissionFile> config;
+    private final ConfigFile<CoreGroupsFile> config;
+    private final ConfigFile<PermissionsSection> section;
     private final OperatorCheck operators;
 
-    public JsonPermissionService(ConfigFile<PermissionFile> config, OperatorCheck operators) {
+    public GroupsPermissionService(ConfigFile<CoreGroupsFile> config, ConfigFile<PermissionsSection> section,
+        OperatorCheck operators) {
         this.config = config;
+        this.section = section;
         this.operators = operators;
     }
 
     @Override
     public boolean has(UUID player, String node) {
-        PermissionFile file = config.get();
+        CoreGroupsFile file = config.get();
         PlayerEntry entry = file.players.get(player.toString());
 
         if (entry != null) {
@@ -67,13 +70,13 @@ public final class JsonPermissionService implements PermissionService {
 
     @Override
     public String group(UUID player) {
-        PermissionFile file = config.get();
+        CoreGroupsFile file = config.get();
         return groupNameOf(file, file.players.get(player.toString()), player);
     }
 
     @Override
     public String meta(UUID player, String key, String fallback) {
-        PermissionFile file = config.get();
+        CoreGroupsFile file = config.get();
         PlayerEntry entry = file.players.get(player.toString());
 
         if (entry != null) {
@@ -92,17 +95,15 @@ public final class JsonPermissionService implements PermissionService {
         return fallback;
     }
 
-    private String groupNameOf(PermissionFile file, PlayerEntry entry, UUID player) {
+    private String groupNameOf(CoreGroupsFile file, PlayerEntry entry, UUID player) {
         if (entry != null && entry.group != null && !entry.group.isEmpty()) {
             return entry.group;
         }
-        if (operators.isOperator(player)) {
-            return file.opGroup;
-        }
-        return file.defaultGroup;
+        PermissionsSection groups = section.get();
+        return operators.isOperator(player) ? groups.opGroup : groups.defaultGroup;
     }
 
-    private List<GroupEntry> groupChain(PermissionFile file, String groupName) {
+    private List<GroupEntry> groupChain(CoreGroupsFile file, String groupName) {
         List<GroupEntry> chain = new ArrayList<>();
         Set<String> visited = new HashSet<>();
         Deque<String> pending = new ArrayDeque<>();

@@ -64,7 +64,8 @@ public final class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public ImageHandle request(ImageRequest request) {
+    public ImageHandle request(ImageRequest wanted) {
+        ImageRequest request = withinLimits(wanted);
         ImageHandleImpl handle;
         boolean fresh = false;
         synchronized (handles) {
@@ -146,10 +147,24 @@ public final class ImageServiceImpl implements ImageService {
         textures.release(uploaded);
     }
 
+    private static ImageRequest withinLimits(ImageRequest request) {
+        int limit = Math.max(
+            ImageLimits.current()
+                .maxSize(),
+            ImageLimits.MIN_SIZE);
+        if (request.size() <= limit) {
+            return request;
+        }
+        return ImageRequest.of(request.source(), limit)
+            .fit(request.fit());
+    }
+
     private void evictOverflow() {
         Iterator<Map.Entry<ImageRequest, ImageHandleImpl>> iterator = handles.entrySet()
             .iterator();
-        while (handles.size() > ImageLimits.MAX_HANDLES && iterator.hasNext()) {
+        int maxHandles = ImageLimits.current()
+            .maxHandles();
+        while (handles.size() > maxHandles && iterator.hasNext()) {
             ImageHandleImpl evicted = iterator.next()
                 .getValue();
             iterator.remove();

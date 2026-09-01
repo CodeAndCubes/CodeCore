@@ -9,5 +9,8 @@ public final class CorePermissions {
     /** Перезагрузка файлов настроек всех модов. */
     public static final String RELOAD = "codecore.admin.reload";
 
+    /** Состояние ролей: кто их держит и чего не умеет. */
+    public static final String ADAPTERS = "codecore.admin.adapters";
+
     private CorePermissions() {}
 }

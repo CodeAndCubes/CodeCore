@@ -85,9 +85,10 @@ final class JsonEndpointProvider implements AvatarProvider {
     }
 
     private JsonElement request(String endpoint) throws IOException {
+        ImageLimits limits = ImageLimits.current();
         HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-        connection.setConnectTimeout(ImageLimits.CONNECT_TIMEOUT_MS);
-        connection.setReadTimeout(ImageLimits.READ_TIMEOUT_MS);
+        connection.setConnectTimeout(limits.connectTimeoutMs());
+        connection.setReadTimeout(limits.readTimeoutMs());
         connection.setRequestProperty(USER_AGENT_HEADER, USER_AGENT);
         try {
             if (connection.getResponseCode() != HTTP_OK) {

@@ -1,37 +1,29 @@
 package com.mrleonardos.codecore.internal.config;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
 
 /**
- * Файл настроек в json.
+ * Открытый файл настроек.
  *
  * <p>
- * Запись атомарная: сначала во временный файл, потом подмена, поэтому прерванное сохранение не оставит
- * от настроек половину. Файл, который не удалось разобрать, откладывается рядом с суффиксом
- * {@code .broken}, а работа продолжается со значениями по умолчанию: сервер не должен падать из-за
- * пропущенной запятой.
+ * Файл, который не удалось разобрать, откладывается рядом с суффиксом {@code .broken}, а работа
+ * продолжается со значениями по умолчанию: сервер не должен падать из-за пропущенной запятой.
  *
  * <p>
  * Если цепочка миграций оборвалась на полпути, файл не переписывается вовсе, а рядом остаётся копия
  * {@code .broken}. Иначе обновление со схемы 1 сразу на 5 при одном объявленном шаге стёрло бы всё, чего
  * текущий класс не знает.
  */
-public final class JsonConfigFile<T> implements ConfigFile<T> {
+public final class ConfigFileImpl<T> implements ConfigFile<T> {
 
     private final ConfigSpec<T> spec;
     private final ConfigPaths paths;
@@ -39,8 +31,9 @@ public final class JsonConfigFile<T> implements ConfigFile<T> {
 
     private T value;
     private Path path;
+    private ConfigDocument document;
 
-    JsonConfigFile(ConfigSpec<T> spec, ConfigPaths paths, Logger log) {
+    ConfigFileImpl(ConfigSpec<T> spec, ConfigPaths paths, Logger log) {
         this.spec = spec;
         this.paths = paths;
         this.log = log;
@@ -75,42 +68,41 @@ public final class JsonConfigFile<T> implements ConfigFile<T> {
         if (value == null) {
             return;
         }
-        JsonObject data = GsonFactory.gson()
-            .toJsonTree(value)
-            .getAsJsonObject();
-        data.addProperty(ConfigKeys.SCHEMA_VERSION, spec.schemaVersion());
-        write(data);
+        if (document == null) {
+            document = ConfigDocuments.empty(spec.format());
+        }
+        document.store(value, spec.type(), spec.schemaVersion());
+        ConfigWriting.atomically(path, document::writeTo, describe(), log);
     }
 
     /** Прочитать файл или создать его со значениями по умолчанию. */
     void load() {
         path = paths.resolve(spec);
         if (!Files.isRegularFile(path)) {
-            value = spec.defaults()
-                .get();
-            save();
+            createFromDefaults();
             log.info("Created config {} at {}", describe(), path);
             return;
         }
 
-        JsonObject data = read();
-        if (data == null) {
+        ConfigDocument read = read();
+        if (read == null) {
             quarantine();
-            value = spec.defaults()
-                .get();
-            save();
+            createFromDefaults();
             return;
         }
 
-        MigrationOutcome outcome = MigrationRunner.run(data, spec.migrations(), spec.schemaVersion(), describe(), log);
-        value = parse(data);
-        if (value == null) {
+        MigrationOutcome outcome = MigrationRunner
+            .run(read.data(), spec.migrations(), spec.schemaVersion(), describe(), log);
+        T parsed = parse(read);
+        if (parsed == null) {
             quarantine();
-            value = spec.defaults()
-                .get();
-            save();
+            createFromDefaults();
             return;
         }
+
+        document = read;
+        value = parsed;
+        reportUnknownKeys();
         if (outcome == MigrationOutcome.INCOMPLETE) {
             keepCopy();
             return;
@@ -123,52 +115,45 @@ public final class JsonConfigFile<T> implements ConfigFile<T> {
     /** Забыть содержимое: используется, когда выгружается мир. */
     void unload() {
         value = null;
+        document = null;
         path = null;
     }
 
-    private JsonObject read() {
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            JsonElement parsed = new JsonParser().parse(reader);
-            if (parsed == null || !parsed.isJsonObject()) {
-                log.warn("Config {} is not a json object", describe());
-                return null;
-            }
-            return parsed.getAsJsonObject();
-        } catch (IOException | JsonParseException failure) {
+    private void createFromDefaults() {
+        document = ConfigDocuments.empty(spec.format());
+        value = spec.defaults()
+            .get();
+        save();
+    }
+
+    private ConfigDocument read() {
+        try {
+            return ConfigDocuments.read(spec.format(), path);
+        } catch (IOException | RuntimeException failure) {
             log.warn("Failed to read config {}: {}", describe(), failure.toString());
             return null;
         }
     }
 
-    private T parse(JsonObject data) {
+    private T parse(ConfigDocument read) {
         try {
-            T parsed = GsonFactory.gson()
-                .fromJson(data, spec.type());
+            T parsed = read.bind(spec.type());
             if (parsed == null) {
                 return null;
             }
             spec.validator()
                 .accept(parsed);
             return parsed;
-        } catch (JsonParseException failure) {
+        } catch (RuntimeException failure) {
             log.warn("Failed to parse config {}: {}", describe(), failure.toString());
             return null;
         }
     }
 
-    private void write(JsonObject data) {
-        Path temporary = path.resolveSibling(
-            path.getFileName()
-                .toString() + ConfigKeys.TEMPORARY_SUFFIX);
-        try {
-            Files.createDirectories(path.getParent());
-            try (Writer writer = Files.newBufferedWriter(temporary, StandardCharsets.UTF_8)) {
-                GsonFactory.gson()
-                    .toJson(data, writer);
-            }
-            Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException failure) {
-            log.error("Failed to save config {}: {}", describe(), failure.toString());
+    private void reportUnknownKeys() {
+        List<String> unknown = document.unknownKeys(spec.type());
+        if (!unknown.isEmpty()) {
+            log.info("Config {} has keys this mod does not read, they are left as they are: {}", describe(), unknown);
         }
     }
 
@@ -203,6 +188,6 @@ public final class JsonConfigFile<T> implements ConfigFile<T> {
     }
 
     private String describe() {
-        return spec.modid() + "/" + spec.name();
+        return spec.role() + "/" + ConfigPaths.fileName(spec);
     }
 }

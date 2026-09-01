@@ -1,5 +1,6 @@
 package com.mrleonardos.codecore.api;
 
+import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.api.command.CommandService;
 import com.mrleonardos.codecore.api.config.ConfigService;
 import com.mrleonardos.codecore.api.net.NetworkService;
@@ -26,6 +27,11 @@ public final class CodeApi {
     /** Реестр сервисов: сюда регистрируют реализации и отсюда их получают. */
     public static ServiceRegistry services() {
         return runtime().services();
+    }
+
+    /** Реестр адаптеров: кто держит каждую область ответственности. */
+    public static AdapterRegistry adapters() {
+        return runtime().adapters();
     }
 
     /** Файлы настроек мода. */

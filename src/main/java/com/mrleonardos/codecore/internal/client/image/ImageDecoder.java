@@ -44,7 +44,8 @@ final class ImageDecoder {
                 reader.setInput(stream, true, true);
                 int index = reader.getMinIndex();
                 long pixels = (long) reader.getWidth(index) * reader.getHeight(index);
-                if (pixels > ImageLimits.MAX_SOURCE_PIXELS) {
+                if (pixels > ImageLimits.current()
+                    .maxSourcePixels()) {
                     throw new IOException("Image is too large: " + pixels + " pixels");
                 }
                 return reader.read(index);

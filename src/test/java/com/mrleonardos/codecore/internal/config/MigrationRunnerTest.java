@@ -12,95 +12,86 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
+import com.mrleonardos.codecore.api.config.ConfigData;
 import com.mrleonardos.codecore.api.config.Migration;
 
 class MigrationRunnerTest {
 
     private static final Logger LOG = LogManager.getLogger(MigrationRunnerTest.class);
-    private static final String FILE = "codecore/test";
+    private static final String FILE = "permissions/core-groups.toml";
 
     @Test
     void runsChainInOrder() {
-        JsonObject data = new JsonObject();
-        data.addProperty(ConfigKeys.SCHEMA_VERSION, 1);
-        data.addProperty("greeting", "hello");
+        ConfigData data = data();
+        data.set(ConfigKeys.SCHEMA_VERSION, 1L);
+        data.set("greeting", "hello");
 
         MigrationOutcome outcome = MigrationRunner.run(data, chain(), 3, FILE, LOG);
 
         assertEquals(MigrationOutcome.MIGRATED, outcome);
-        assertEquals(
-            3,
-            data.get(ConfigKeys.SCHEMA_VERSION)
-                .getAsInt());
-        assertEquals(
-            "hello",
-            data.get("welcome")
-                .getAsString(),
-            "первый шаг переименовал поле");
-        assertTrue(
-            data.get("polite")
-                .getAsBoolean(),
-            "второй шаг добавил новое поле");
+        assertEquals(3, data.integer(ConfigKeys.SCHEMA_VERSION, 0));
+        assertEquals("hello", data.string("welcome", ""), "первый шаг переименовал ключ");
+        assertTrue(data.flag("polite", false), "второй шаг добавил новый ключ");
         assertFalse(data.has("greeting"));
     }
 
     @Test
     void fileWithoutVersionIsTreatedAsFirst() {
-        JsonObject data = new JsonObject();
-        data.addProperty("greeting", "hi");
+        ConfigData data = data();
+        data.set("greeting", "hi");
 
         MigrationRunner.run(data, chain(), 2, FILE, LOG);
 
-        assertEquals(
-            2,
-            data.get(ConfigKeys.SCHEMA_VERSION)
-                .getAsInt());
-        assertEquals(
-            "hi",
-            data.get("welcome")
-                .getAsString());
+        assertEquals(2, data.integer(ConfigKeys.SCHEMA_VERSION, 0));
+        assertEquals("hi", data.string("welcome", ""));
     }
 
     @Test
     void currentVersionIsLeftAlone() {
-        JsonObject data = new JsonObject();
-        data.addProperty(ConfigKeys.SCHEMA_VERSION, 3);
+        ConfigData data = data();
+        data.set(ConfigKeys.SCHEMA_VERSION, 3L);
 
         assertEquals(MigrationOutcome.UNCHANGED, MigrationRunner.run(data, chain(), 3, FILE, LOG));
     }
 
     @Test
     void newerFileIsNotTouched() {
-        JsonObject data = new JsonObject();
-        data.addProperty(ConfigKeys.SCHEMA_VERSION, 9);
-        data.addProperty("fromTheFuture", true);
+        ConfigData data = data();
+        data.set(ConfigKeys.SCHEMA_VERSION, 9L);
+        data.set("fromTheFuture", true);
 
         assertEquals(MigrationOutcome.UNCHANGED, MigrationRunner.run(data, chain(), 3, FILE, LOG));
-        assertEquals(
-            9,
-            data.get(ConfigKeys.SCHEMA_VERSION)
-                .getAsInt(),
-            "чужие настройки должны остаться целыми");
+        assertEquals(9, data.integer(ConfigKeys.SCHEMA_VERSION, 0), "чужие настройки должны остаться целыми");
     }
 
     @Test
     void gapInChainStopsAtLastReachableVersion() {
-        JsonObject data = new JsonObject();
-        data.addProperty(ConfigKeys.SCHEMA_VERSION, 1);
-        data.addProperty("greeting", "hey");
+        ConfigData data = data();
+        data.set(ConfigKeys.SCHEMA_VERSION, 1L);
+        data.set("greeting", "hey");
 
         List<Migration> withGap = Collections.singletonList(renameGreeting());
 
         assertEquals(MigrationOutcome.INCOMPLETE, MigrationRunner.run(data, withGap, 5, FILE, LOG));
-        assertEquals(
-            2,
-            data.get(ConfigKeys.SCHEMA_VERSION)
-                .getAsInt());
-        assertEquals(
-            "hey",
-            data.get("welcome")
-                .getAsString());
+        assertEquals(2, data.integer(ConfigKeys.SCHEMA_VERSION, 0));
+        assertEquals("hey", data.string("welcome", ""));
+    }
+
+    @Test
+    void theSameChainRunsOnJsonData() {
+        ConfigData data = JsonDocument.empty()
+            .data();
+        data.set(ConfigKeys.SCHEMA_VERSION, 1L);
+        data.set("greeting", "привет");
+
+        assertEquals(MigrationOutcome.MIGRATED, MigrationRunner.run(data, chain(), 3, FILE, LOG));
+        assertEquals("привет", data.string("welcome", ""));
+        assertTrue(data.flag("polite", false));
+    }
+
+    private static ConfigData data() {
+        return TomlDocument.empty()
+            .data();
     }
 
     private static List<Migration> chain() {
@@ -121,8 +112,9 @@ class MigrationRunnerTest {
             }
 
             @Override
-            public void apply(JsonObject data) {
-                data.add("welcome", data.remove("greeting"));
+            public void apply(ConfigData data) {
+                data.set("welcome", data.get("greeting"));
+                data.remove("greeting");
             }
         };
     }
@@ -141,8 +133,8 @@ class MigrationRunnerTest {
             }
 
             @Override
-            public void apply(JsonObject data) {
-                data.addProperty("polite", true);
+            public void apply(ConfigData data) {
+                data.set("polite", true);
             }
         };
     }

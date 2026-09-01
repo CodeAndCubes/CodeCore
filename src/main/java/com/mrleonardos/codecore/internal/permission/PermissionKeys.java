@@ -3,8 +3,11 @@ package com.mrleonardos.codecore.internal.permission;
 /** Имена и обозначения, из которых собран файл прав. */
 public final class PermissionKeys {
 
-    /** Имя файла настроек прав. */
-    public static final String FILE_NAME = "permissions";
+    /** Что за файл: вместе с владельцем даёт {@code core-groups.toml}. */
+    public static final String FILE_NAME = "groups";
+
+    /** Имя секции главного файла, откуда берутся группы по умолчанию. */
+    public static final String SECTION = "permissions";
 
     /** Группа, в которую попадает игрок без явного назначения. */
     public static final String DEFAULT_GROUP = "player";

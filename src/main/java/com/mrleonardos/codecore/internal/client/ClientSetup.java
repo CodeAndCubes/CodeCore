@@ -9,7 +9,9 @@ import com.mrleonardos.codecore.api.avatar.AvatarConfig;
 import com.mrleonardos.codecore.api.client.ClientApi;
 import com.mrleonardos.codecore.api.client.ClientRuntime;
 import com.mrleonardos.codecore.api.client.avatar.AvatarService;
+import com.mrleonardos.codecore.api.client.image.ImageLimits;
 import com.mrleonardos.codecore.api.client.image.ImageService;
+import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.config.ConfigScope;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
 import com.mrleonardos.codecore.internal.AvatarConfigSink;
@@ -18,6 +20,7 @@ import com.mrleonardos.codecore.internal.CoreRuntimeImpl;
 import com.mrleonardos.codecore.internal.SideSetup;
 import com.mrleonardos.codecore.internal.client.avatar.AvatarServiceImpl;
 import com.mrleonardos.codecore.internal.client.avatar.ClientAvatarSettings;
+import com.mrleonardos.codecore.internal.client.image.ImageBudget;
 import com.mrleonardos.codecore.internal.client.image.ImageServiceImpl;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -45,11 +48,19 @@ public final class ClientSetup implements SideSetup, ClientRuntime, AvatarConfig
     @Override
     public void install(CoreRuntimeImpl runtime) {
         Path configDirectory = CodeApi.configs()
-            .directory(CoreConstants.MODID);
+            .directory(ConfigRoles.CORE);
+
+        ImageLimits.install(
+            ImageBudget.of(
+                runtime.sections()
+                    .images()
+                    .get(),
+                CodeCoreMod.LOG));
 
         ClientAvatarSettings settings = CodeApi.configs()
             .open(
                 ConfigSpec.of(CoreConstants.MODID, AVATARS_FILE, ClientAvatarSettings.class)
+                    .role(ConfigRoles.CORE)
                     .scope(ConfigScope.CLIENT)
                     .build())
             .get();
