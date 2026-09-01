@@ -2,8 +2,12 @@ dependencies {
     compileOnly 'com.mrleonardos:codesides:1.0.0'
 
     shadowImplementation 'com.twelvemonkeys.imageio:imageio-webp:3.9.4'
-    shadowImplementation 'com.electronwill.night-config:core:3.6.7'
-    shadowImplementation 'com.electronwill.night-config:toml:3.6.7'
+
+    // night-config не ниже 3.8: до неё TableParser заводил вложенную таблицу через
+    // TomlFormat.instance().createConfig(), то есть на HashMap, и порядок ключей секции терялся при
+    // разборе. С 3.8 таблицы создаются через createSubConfig() и наследуют LinkedHashMap из TomlDocument.
+    shadowImplementation 'com.electronwill.night-config:core:3.8.3'
+    shadowImplementation 'com.electronwill.night-config:toml:3.8.3'
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
