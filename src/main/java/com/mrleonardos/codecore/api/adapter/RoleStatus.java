@@ -13,14 +13,21 @@ public final class RoleStatus {
     private final RoleChoice choice;
     private final List<String> candidates;
     private final Set<RoleCapability> missing;
+    private final String fallback;
 
     public RoleStatus(String role, String owner, RoleChoice choice, List<String> candidates,
         Set<RoleCapability> missing) {
+        this(role, owner, choice, candidates, missing, null);
+    }
+
+    public RoleStatus(String role, String owner, RoleChoice choice, List<String> candidates,
+        Set<RoleCapability> missing, String fallback) {
         this.role = role;
         this.owner = owner;
         this.choice = choice;
         this.candidates = Collections.unmodifiableList(candidates);
         this.missing = Collections.unmodifiableSet(new LinkedHashSet<>(missing));
+        this.fallback = fallback;
     }
 
     public String role() {
@@ -45,5 +52,16 @@ public final class RoleStatus {
     /** Умения роли, которых у владельца нет. */
     public Set<RoleCapability> missing() {
         return missing;
+    }
+
+    /**
+     * Чем закрыта роль, оставшаяся ничьей, или {@code null}, если она пуста.
+     *
+     * <p>
+     * Владельцем запасная реализация не считается, поэтому {@link #owner()} рядом с непустым значением
+     * этого поля всё равно {@code null}.
+     */
+    public String fallback() {
+        return fallback;
     }
 }

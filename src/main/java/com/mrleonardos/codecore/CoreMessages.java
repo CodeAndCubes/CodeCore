@@ -13,6 +13,8 @@ public final class CoreMessages {
 
     public static final String ADAPTERS_MISSING = "codecore.message.adapters.missing";
 
+    public static final String ADAPTERS_FALLBACK = "codecore.message.adapters.fallback";
+
     public static final String USAGE_ROOT = "codecore.command.usage.root";
 
     private CoreMessages() {}

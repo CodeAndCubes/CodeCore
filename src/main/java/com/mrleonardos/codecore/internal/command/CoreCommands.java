@@ -60,6 +60,9 @@ public final class CoreCommands {
             }
             context.reply(CoreMessages.ADAPTERS_CANDIDATES, join(status.candidates()));
             context.reply(CoreMessages.ADAPTERS_MISSING, join(status.missing()));
+            if (status.fallback() != null) {
+                context.reply(CoreMessages.ADAPTERS_FALLBACK, status.fallback());
+            }
         }
     }
 

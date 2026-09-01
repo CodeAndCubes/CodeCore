@@ -13,4 +13,5 @@ codecore.message.adapters.role=Role %s is held by %s, chosen by %s
 codecore.message.adapters.nobody=Role %s is held by nobody, chosen by %s
 codecore.message.adapters.candidates=  candidates: %s
 codecore.message.adapters.missing=  does not work: %s
+codecore.message.adapters.fallback=  instead: %s
 codecore.command.usage.root=/codecore reload | /codecore adapters

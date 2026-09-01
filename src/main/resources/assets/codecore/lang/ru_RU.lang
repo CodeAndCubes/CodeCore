@@ -13,4 +13,5 @@ codecore.message.adapters.role=Роль %s держит %s, выбор: %s
 codecore.message.adapters.nobody=Роль %s не занята никем, выбор: %s
 codecore.message.adapters.candidates=  кандидаты: %s
 codecore.message.adapters.missing=  не работает: %s
+codecore.message.adapters.fallback=  вместо неё: %s
 codecore.command.usage.root=/codecore reload | /codecore adapters

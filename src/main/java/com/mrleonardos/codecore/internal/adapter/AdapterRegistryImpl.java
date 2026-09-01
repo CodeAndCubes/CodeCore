@@ -14,6 +14,7 @@ import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.api.adapter.RoleAdapter;
 import com.mrleonardos.codecore.api.adapter.RoleCapability;
 import com.mrleonardos.codecore.api.adapter.RoleChoice;
+import com.mrleonardos.codecore.api.adapter.RoleFallback;
 import com.mrleonardos.codecore.api.adapter.RoleOwnerKind;
 import com.mrleonardos.codecore.api.adapter.RoleServices;
 import com.mrleonardos.codecore.api.adapter.RoleSpec;
@@ -131,7 +132,7 @@ public final class AdapterRegistryImpl implements AdapterRegistry {
         List<String> names = names(candidates);
 
         if (MainConfig.OWNER_OFF.equalsIgnoreCase(requested)) {
-            return new RoleStatus(spec.role(), null, RoleChoice.OFF, names, spec.capabilities());
+            return unowned(spec, RoleChoice.OFF, names);
         }
         if (!MainConfig.OWNER_AUTO.equalsIgnoreCase(requested)) {
             RoleAdapter named = byName(candidates, requested);
@@ -156,11 +157,34 @@ public final class AdapterRegistryImpl implements AdapterRegistry {
             chosen = firstOf(candidates, RoleOwnerKind.BUILTIN);
         }
         if (chosen == null) {
-            return new RoleStatus(spec.role(), null, choice, names, spec.capabilities());
+            return unowned(spec, choice, names);
         }
         ServicePriority priority = chosen.kind() == RoleOwnerKind.BUILTIN ? ServicePriority.BUILTIN
             : ServicePriority.ADDON;
         return install(spec, chosen, priority, choice, names);
+    }
+
+    /**
+     * Роль осталась ничьей: закрыть её запасной реализацией, если объявитель роли её назвал.
+     *
+     * <p>
+     * Владельцем запасная реализация не становится, поэтому в статусе владельца по-прежнему нет. Без неё
+     * роль остаётся без сервисов вовсе, и первый же {@code require} у соседнего мода бросает исключение
+     * посреди чужой команды.
+     */
+    private RoleStatus unowned(RoleSpec spec, RoleChoice choice, List<String> names) {
+        RoleFallback fallback = spec.fallback();
+        if (fallback == null) {
+            return new RoleStatus(spec.role(), null, choice, names, spec.capabilities());
+        }
+
+        RoleServices created = fallback.create();
+        for (Class<?> type : created.types()) {
+            register(type, created, ServicePriority.BUILTIN);
+        }
+        Set<RoleCapability> missing = new LinkedHashSet<>(spec.capabilities());
+        missing.removeAll(fallback.capabilities());
+        return new RoleStatus(spec.role(), null, choice, names, missing, fallback.description());
     }
 
     private RoleStatus install(RoleSpec spec, RoleAdapter winner, ServicePriority priority, RoleChoice choice,
@@ -217,7 +241,14 @@ public final class AdapterRegistryImpl implements AdapterRegistry {
 
     private void report() {
         for (RoleStatus status : statuses.values()) {
-            if (status.owner() == null) {
+            if (status.owner() == null && status.fallback() != null) {
+                log.warn(
+                    "Role {} is held by nobody ({}), candidates: {}; {}",
+                    status.role(),
+                    status.choice(),
+                    status.candidates(),
+                    status.fallback());
+            } else if (status.owner() == null) {
                 log.warn(
                     "Role {} is held by nobody ({}), candidates: {}",
                     status.role(),

@@ -1,6 +1,8 @@
 package com.mrleonardos.codecore.internal.permission;
 
 import com.mrleonardos.codecore.api.adapter.RoleCapability;
+import com.mrleonardos.codecore.api.adapter.RoleFallback;
+import com.mrleonardos.codecore.api.adapter.RoleServices;
 import com.mrleonardos.codecore.api.adapter.RoleSpec;
 import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.service.PermissionService;
@@ -32,12 +34,22 @@ public final class PermissionRole {
     /** Треки: порядок групп для повышения и понижения. */
     public static final RoleCapability TRACKS = RoleCapability.of("tracks");
 
+    /** Чем закрыта роль, оставшаяся ничьей: строка уходит в стартовую сводку. */
+    private static final String OPERATORS = "permission checks fall back to the server operator list";
+
     private PermissionRole() {}
 
     public static RoleSpec spec() {
         return RoleSpec.of(ConfigRoles.PERMISSIONS)
             .capabilities(HAS, GROUP, META, CONTEXTS, EXPIRY, TRACKS)
             .services(PermissionService.class)
+            .fallback(RoleFallback.of(OPERATORS, PermissionRole::operators, HAS))
+            .build();
+    }
+
+    private static RoleServices operators() {
+        return RoleServices.builder()
+            .add(PermissionService.class, new OperatorPermissions(OperatorLookup::isOperator))
             .build();
     }
 }

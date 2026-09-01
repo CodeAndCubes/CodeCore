@@ -18,11 +18,13 @@ public final class RoleSpec {
     private final String role;
     private final Set<RoleCapability> capabilities;
     private final Set<Class<?>> services;
+    private final RoleFallback fallback;
 
     private RoleSpec(Builder builder) {
         this.role = builder.role;
         this.capabilities = Collections.unmodifiableSet(new LinkedHashSet<>(builder.capabilities));
         this.services = Collections.unmodifiableSet(new LinkedHashSet<>(builder.services));
+        this.fallback = builder.fallback;
     }
 
     public static Builder of(String role) {
@@ -43,11 +45,18 @@ public final class RoleSpec {
         return services;
     }
 
+    /** Что отвечает, когда роль не занята никем, или {@code null}, если роль оставляют пустой. */
+    public RoleFallback fallback() {
+        return fallback;
+    }
+
     public static final class Builder {
 
         private final String role;
         private final Set<RoleCapability> capabilities = new LinkedHashSet<>();
         private final Set<Class<?>> services = new LinkedHashSet<>();
+
+        private RoleFallback fallback;
 
         private Builder(String role) {
             if (role == null || role.isEmpty()) {
@@ -63,6 +72,12 @@ public final class RoleSpec {
 
         public Builder services(Class<?>... values) {
             services.addAll(Arrays.asList(values));
+            return this;
+        }
+
+        /** Чем закрыть роль, оставшуюся без владельца. Без этого её сервисы просто не зарегистрированы. */
+        public Builder fallback(RoleFallback value) {
+            this.fallback = value;
             return this;
         }
 
