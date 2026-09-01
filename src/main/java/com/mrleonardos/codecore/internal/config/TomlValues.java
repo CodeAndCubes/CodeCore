@@ -105,12 +105,21 @@ final class TomlValues {
      * <p>
      * Gson отдаёт число либо готовым {@link Number}, либо отложенным разбором строки. Дробное от целого
      * отличается точкой и показателем степени: без этого целое поле уехало бы в файл как {@code 3.0}.
+     *
+     * <p>
+     * Float расширяется до double через свою кратчайшую запись, а не через {@code doubleValue()}. Прямое
+     * расширение показывает двоичный хвост, которого в исходном числе не было: поле со значением
+     * {@code 0.55f} уезжало в файл как {@code 0.550000011920929}, и человек не понимал, можно ли написать
+     * там {@code 0.6}. Кратчайшая запись читается обратно в тот же float.
      */
     private static Object number(Number value) {
         if (value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte) {
             return value.longValue();
         }
-        if (value instanceof Double || value instanceof Float) {
+        if (value instanceof Float) {
+            return Double.parseDouble(value.toString());
+        }
+        if (value instanceof Double) {
             return value.doubleValue();
         }
         String text = value.toString();
