@@ -6,8 +6,13 @@
 | Нода | Что даёт |
 |---|---|
 | `codecore.admin` | корень админских веток ядра |
-| `codecore.admin.reload` | `/codecore reload`: перечитать конфигурацию ядра (включая `avatars.json`) |
+| `codecore.admin.reload` | `/codecore reload`: перечитать настройки всех модов линейки |
+| `codecore.admin.adapters` | `/codecore adapters`: кто держит каждую роль, кандидаты, недоступные умения |
 
 Права самих модов линейки (чат, права, экономика и дальше) живут в perms.md каждого мода.
-Встроенная реализация прав ядра читает `config/codecore/permissions.json`; после появления
-CodePerms файл остаётся источником для импорта, а отдаётся из реестра реализация CodePerms.
+
+Встроенная реализация прав читает `config/code/permissions/core-groups.toml`, а `defaultGroup` и
+`opGroup` берёт из секции `[permissions]` главного файла `config/code/config.toml`. Роль
+`permissions` достаётся одному владельцу целиком: при заводском `auto` её берёт CodePerms, если он
+стоит на сервере, иначе встроенная реализация ядра. Отдав роль, ядро свой файл групп не читает и не
+создаёт.

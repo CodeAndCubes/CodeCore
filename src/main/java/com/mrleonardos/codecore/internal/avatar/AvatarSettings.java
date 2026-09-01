@@ -3,7 +3,7 @@ package com.mrleonardos.codecore.internal.avatar;
 import com.mrleonardos.codecore.api.avatar.AvatarConfig;
 
 /**
- * Содержимое {@code config/codecore/avatars.json}, серверного файла.
+ * Содержимое {@code config/code/core/core-avatars.toml}, серверного файла.
  *
  * <p>
  * Лежит на сервере и рассылается клиентам при входе: адрес аватарок задаёт проект, а не игрок.
@@ -25,7 +25,7 @@ public final class AvatarSettings {
     /** Путь к адресу картинки в ответе {@code jsonEndpoint}, например {@code data.avatar}. */
     public String jsonPath = "avatar";
 
-    /** Папка у игрока для {@code localFolder}; пустая означает {@code config/codecore/avatars}. */
+    /** Папка у игрока для {@code localFolder}; пустая означает {@code config/code/core/avatars}. */
     public String folder = "";
 
     /** Сторона картинки в пикселях после обработки. */
