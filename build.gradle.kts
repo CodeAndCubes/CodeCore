@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.api.tasks.bundling.Jar
 
 plugins {
 	id("com.gtnewhorizons.gtnhconvention")
@@ -10,4 +11,17 @@ codeSides {
 	inputJar.set(
 		tasks.named<AbstractArchiveTask>("reobfJar")
 			.flatMap { it.archiveFile })
+}
+
+// Переименование зашейдженных классов не трогает списки в META-INF/services, а ImageIO читает их
+// через ServiceLoader и падает ServiceConfigurationError на имени класса, которого в jar уже нет.
+// Поэтому имена в этих файлах переписываются тем же префиксом, что и сами классы.
+tasks.named<Jar>("shadowJar") {
+	filesMatching("META-INF/services/*") {
+		filter { line: String ->
+			if (line.startsWith("com.twelvemonkeys.") || line.startsWith("com.electronwill."))
+				"com.mrleonardos.codecore.shadow." + line
+			else line
+		}
+	}
 }
