@@ -86,8 +86,7 @@ final class TomlBinder {
             return;
         }
         Map<String, Field> described = fieldsByName(ConfigFields.raw(type));
-        for (Map.Entry<String, Object> entry : config.valueMap()
-            .entrySet()) {
+        for (UnmodifiableConfig.Entry entry : config.entrySet()) {
             String key = entry.getKey();
             Field field = described.get(key);
             if (field == null) {
@@ -96,8 +95,9 @@ final class TomlBinder {
                 }
                 continue;
             }
-            if (entry.getValue() instanceof UnmodifiableConfig) {
-                unknown((UnmodifiableConfig) entry.getValue(), field.getGenericType(), prefix + key + ".", found);
+            Object value = entry.getRawValue();
+            if (value instanceof UnmodifiableConfig) {
+                unknown((UnmodifiableConfig) value, field.getGenericType(), prefix + key + ".", found);
             }
         }
     }
@@ -140,9 +140,7 @@ final class TomlBinder {
     private static void mergeAll(JsonObject values, CommentedConfig previous, CommentedConfig target, Type valueType) {
         boolean inPlace = previous == target;
         if (inPlace) {
-            for (String key : new ArrayList<>(
-                target.valueMap()
-                    .keySet())) {
+            for (String key : keysOf(target)) {
                 if (!values.has(key)) {
                     target.remove(path(key));
                 }
@@ -181,8 +179,7 @@ final class TomlBinder {
         if (previous == null) {
             return null;
         }
-        Object existing = previous.valueMap()
-            .get(key);
+        Object existing = previous.getRaw(path(key));
         return existing instanceof Config ? commented((Config) existing) : null;
     }
 
@@ -200,14 +197,23 @@ final class TomlBinder {
         if (previous == null) {
             return;
         }
-        for (Map.Entry<String, Object> entry : previous.valueMap()
-            .entrySet()) {
+        for (UnmodifiableConfig.Entry entry : previous.entrySet()) {
             if (described.contains(entry.getKey())) {
                 continue;
             }
-            target.set(path(entry.getKey()), entry.getValue());
+            Object value = entry.getRawValue();
+            target.set(path(entry.getKey()), value);
             carryComment(previous, target, entry.getKey());
         }
+    }
+
+    /** Ключи таблицы отдельным списком: по нему идёт удаление, а карту под конфигом трогать нельзя. */
+    private static List<String> keysOf(UnmodifiableConfig config) {
+        List<String> keys = new ArrayList<>();
+        for (UnmodifiableConfig.Entry entry : config.entrySet()) {
+            keys.add(entry.getKey());
+        }
+        return keys;
     }
 
     private static void describe(CommentedConfig target, String key, Field field) {

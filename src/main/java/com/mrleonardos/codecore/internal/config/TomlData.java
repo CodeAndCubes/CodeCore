@@ -2,11 +2,13 @@ package com.mrleonardos.codecore.internal.config;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
 import com.electronwill.nightconfig.core.Config;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.mrleonardos.codecore.api.config.ConfigData;
 
 final class TomlData implements ConfigData {
@@ -78,8 +80,11 @@ final class TomlData implements ConfigData {
 
     @Override
     public Set<String> keys() {
-        return config.valueMap()
-            .keySet();
+        Set<String> keys = new LinkedHashSet<>();
+        for (UnmodifiableConfig.Entry entry : config.entrySet()) {
+            keys.add(entry.getKey());
+        }
+        return keys;
     }
 
     @Override

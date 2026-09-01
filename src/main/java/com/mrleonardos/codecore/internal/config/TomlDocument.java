@@ -91,8 +91,7 @@ final class TomlDocument implements ConfigDocument {
 
     /** Вложенная таблица из файла или {@code null}, если её там нет. */
     CommentedConfig existingTable(String name) {
-        Object existing = config.valueMap()
-            .get(name);
+        Object existing = config.getRaw(Collections.singletonList(name));
         return existing instanceof CommentedConfig ? (CommentedConfig) existing : null;
     }
 
@@ -108,8 +107,7 @@ final class TomlDocument implements ConfigDocument {
 
     /** Прочитать вложенную таблицу в класс настроек или {@code null}, если её в файле нет. */
     <T> T bindSection(String name, Class<T> type) {
-        Object existing = config.valueMap()
-            .get(name);
+        Object existing = config.getRaw(Collections.singletonList(name));
         if (!(existing instanceof CommentedConfig)) {
             return null;
         }

@@ -28,9 +28,9 @@ final class TomlValues {
 
     static JsonObject toJson(UnmodifiableConfig config) {
         JsonObject json = new JsonObject();
-        for (Map.Entry<String, Object> entry : config.valueMap()
-            .entrySet()) {
-            json.add(entry.getKey(), toJson(entry.getValue()));
+        for (UnmodifiableConfig.Entry entry : config.entrySet()) {
+            Object value = entry.getRawValue();
+            json.add(entry.getKey(), toJson(value));
         }
         return json;
     }

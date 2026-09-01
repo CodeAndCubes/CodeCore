@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import org.apache.logging.log4j.Logger;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.mrleonardos.codecore.api.config.AuditSettings;
 import com.mrleonardos.codecore.api.config.ConfigData;
 import com.mrleonardos.codecore.api.config.ConfigFile;
@@ -205,17 +206,15 @@ public final class MainConfig {
         CommentedConfig previous = document.existingTable(OWNERS_SECTION);
         CommentedConfig table = document.newTable();
         for (String role : roles) {
-            Object chosen = previous == null ? null
-                : previous.valueMap()
-                    .get(role);
+            Object chosen = previous == null ? null : previous.getRaw(Collections.singletonList(role));
             table.set(Collections.singletonList(role), chosen == null ? OWNER_AUTO : chosen);
             TomlBinder.carry(previous, table, role);
         }
         if (previous != null) {
-            for (Map.Entry<String, Object> entry : previous.valueMap()
-                .entrySet()) {
+            for (UnmodifiableConfig.Entry entry : previous.entrySet()) {
                 if (!roles.contains(entry.getKey())) {
-                    table.set(Collections.singletonList(entry.getKey()), entry.getValue());
+                    Object own = entry.getRawValue();
+                    table.set(Collections.singletonList(entry.getKey()), own);
                     TomlBinder.carry(previous, table, entry.getKey());
                 }
             }
