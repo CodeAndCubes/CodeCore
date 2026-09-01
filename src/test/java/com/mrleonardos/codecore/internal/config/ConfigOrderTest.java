@@ -56,6 +56,22 @@ class ConfigOrderTest {
     }
 
     @Test
+    @DisplayName("ключи описанной таблицы возвращаются в порядок полей, чужой уходит следом")
+    void describedTableFollowsTheFieldOrder() throws IOException {
+        ConfigFile<Settings> file = open();
+        file.save();
+        write(text().replace("[window]\nwidth = 800\nheight = 600", "[window]\nheight = 600\nmyOwn = 7\nwidth = 800"));
+
+        file.reload();
+        file.save();
+
+        assertEquals(
+            Arrays.asList("width = 800", "height = 600", "myOwn = 7"),
+            linesAfter("[window]"),
+            "описанные ключи в порядке полей, чужой за ними");
+    }
+
+    @Test
     @DisplayName("строка администратора остаётся над своей секцией")
     void humanCommentStaysAboveItsSection() throws IOException {
         ConfigFile<Settings> file = open();
@@ -88,6 +104,19 @@ class ConfigOrderTest {
         Matcher matcher = SECTION.matcher(text());
         while (matcher.find()) {
             found.add(matcher.group(1));
+        }
+        return found;
+    }
+
+    private List<String> linesAfter(String anchor) throws IOException {
+        List<String> found = new ArrayList<>();
+        List<String> lines = Arrays.asList(text().split("\n", -1));
+        for (int at = lines.indexOf(anchor) + 1; at < lines.size(); at++) {
+            String line = lines.get(at);
+            if (line.isEmpty() || line.startsWith("[")) {
+                break;
+            }
+            found.add(line);
         }
         return found;
     }
@@ -125,7 +154,16 @@ class ConfigOrderTest {
 
         public String greeting = "привет";
 
+        public Window window = new Window();
+
         public Map<String, Channel> channels = new LinkedHashMap<>();
+    }
+
+    public static final class Window {
+
+        public int width = 800;
+
+        public int height = 600;
     }
 
     public static final class Channel {
