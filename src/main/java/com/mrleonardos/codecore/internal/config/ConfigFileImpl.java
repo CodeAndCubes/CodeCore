@@ -87,6 +87,7 @@ public final class ConfigFileImpl<T> implements ConfigFile<T> {
         ConfigDocument read = read();
         if (read == null) {
             quarantine();
+            ConfigHints.afterBadRead(spec.format(), log);
             createFromDefaults();
             return;
         }

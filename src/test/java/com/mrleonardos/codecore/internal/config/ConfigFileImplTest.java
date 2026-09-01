@@ -74,6 +74,30 @@ class ConfigFileImplTest {
     }
 
     @Test
+    @DisplayName("имя секции кириллицей: файл отложен, а в логе сказано про кавычки")
+    void cyrillicSectionNameGetsAHint() throws IOException {
+        write("[groups.Ярмарка]\nnodes = []\n");
+        LogCapture capture = LogCapture.attach(LOG);
+
+        try {
+            ConfigFile<Settings> file = open(spec().build());
+
+            assertEquals("привет", file.get().greeting, "работа идёт со значениями по умолчанию");
+            assertTrue(Files.isRegularFile(broken()), "битый файл отложен");
+            assertTrue(
+                capture.text()
+                    .contains(broken().toString()),
+                capture.text());
+            assertTrue(
+                capture.text()
+                    .contains(ConfigHints.quotedNames()),
+                capture.text());
+        } finally {
+            capture.detach();
+        }
+    }
+
+    @Test
     @DisplayName("дошедшая до конца цепочка миграций переписывает файл")
     void completeMigrationRewritesTheFile() throws IOException {
         write("schemaVersion = 1\noldGreeting = \"здорово\"\n");

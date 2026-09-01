@@ -303,6 +303,26 @@ class MainConfigTest {
     }
 
     @Test
+    @DisplayName("подсказка про кавычки достаётся и главному файлу")
+    void brokenMainFileGetsAHint() throws IOException {
+        writeMain("[owners.Ярмарка]\npermissions = \"auto\"\n");
+        LogCapture capture = LogCapture.attach(LOG);
+
+        try {
+            ConfigServiceImpl service = service();
+            new CoreSections(service);
+            service.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
+
+            assertTrue(
+                capture.text()
+                    .contains(ConfigHints.quotedNames()),
+                capture.text());
+        } finally {
+            capture.detach();
+        }
+    }
+
+    @Test
     @DisplayName("комментарий человека в главном файле переживает запись")
     void humanCommentInTheMainFileSurvives() throws IOException {
         ConfigServiceImpl first = service();

@@ -19,6 +19,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.mrleonardos.codecore.api.config.AuditSettings;
 import com.mrleonardos.codecore.api.config.ConfigData;
 import com.mrleonardos.codecore.api.config.ConfigFile;
+import com.mrleonardos.codecore.api.config.ConfigFormat;
 import com.mrleonardos.codecore.api.config.SectionSpec;
 import com.mrleonardos.codecore.api.config.StorageSettings;
 
@@ -251,6 +252,7 @@ public final class MainConfig {
             } catch (IOException move) {
                 log.error("Failed to set aside broken config {}: {}", DESCRIPTION, move.toString());
             }
+            ConfigHints.afterBadRead(ConfigFormat.TOML, log);
             return TomlDocument.empty();
         }
     }
