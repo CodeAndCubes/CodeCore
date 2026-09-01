@@ -44,6 +44,18 @@ class ConfigCommentsTest {
     }
 
     @Test
+    @DisplayName("описание класса-корня становится шапкой файла")
+    void rootCommentBecomesTheHeader() throws IOException {
+        ConfigFile<Titled> file = open(Titled.class);
+
+        assertTrue(text().startsWith("# Файл настроек ядра.\n# Правьте на здоровье."), text());
+
+        file.save();
+
+        assertEquals(1, count(text(), "# Файл настроек ядра."), "повторная запись шапку не удваивает");
+    }
+
+    @Test
     @DisplayName("правка описания в моде переписывает старую строку, а не добавляет вторую")
     void changedAnnotationReplacesTheOldLine() throws IOException {
         open(Settings.class);
@@ -125,6 +137,14 @@ class ConfigCommentsTest {
         Files.write(path(), content.getBytes(StandardCharsets.UTF_8));
     }
 
+    private static int count(String text, String part) {
+        int found = 0;
+        for (int at = text.indexOf(part); at >= 0; at = text.indexOf(part, at + part.length())) {
+            found++;
+        }
+        return found;
+    }
+
     private String after(String anchor, String addition) throws IOException {
         String current = text();
         int at = current.indexOf(anchor);
@@ -141,6 +161,12 @@ class ConfigCommentsTest {
         public Corner corner = new Corner();
 
         public Map<String, Slot> slots = new LinkedHashMap<>();
+    }
+
+    @Comment({ "Файл настроек ядра.", "Правьте на здоровье." })
+    public static final class Titled {
+
+        public String greeting = "привет";
     }
 
     public static final class Renamed {

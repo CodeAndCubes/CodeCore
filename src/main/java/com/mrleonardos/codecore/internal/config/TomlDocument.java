@@ -75,6 +75,7 @@ final class TomlDocument implements ConfigDocument {
                 .getAsJsonObject(),
             config,
             type);
+        TomlBinder.comment(config, ConfigKeys.SCHEMA_VERSION, TomlBinder.commentOf(type));
     }
 
     /** Наложить значения на вложенную таблицу: так собирается главный файл из секций. */
