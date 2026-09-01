@@ -14,5 +14,6 @@ run/
 openspec/
 *.md
 !README.md
+!perms.md
 # Логи запусков
 logs/
