@@ -1,0 +1,12 @@
+codecore.command.usage=Usage: %s
+codecore.command.error.not_a_number=%s is not a number
+codecore.command.error.out_of_range=%s must be between %s and %s
+codecore.command.error.player_not_found=Player %s is not online
+codecore.command.error.invalid_duration=%s is not a valid duration, try 10m or 2h30m
+codecore.command.error.unknown_value=Unknown value: %s
+codecore.command.error.no_permission=You are not allowed to do that
+codecore.command.error.unknown_subcommand=Unknown subcommand
+codecore.command.error.missing_argument=Missing argument: %s
+codecore.command.error.players_only=Only a player can run this command
+codecore.message.configs_reloaded=Configuration files reloaded
+codecore.command.usage.root=/codecore reload

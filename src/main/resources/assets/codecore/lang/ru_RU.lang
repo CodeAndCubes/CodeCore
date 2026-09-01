@@ -1,0 +1,12 @@
+codecore.command.usage=Использование: %s
+codecore.command.error.not_a_number=%s — это не число
+codecore.command.error.out_of_range=%s должно быть от %s до %s
+codecore.command.error.player_not_found=Игрок %s не в сети
+codecore.command.error.invalid_duration=%s — непонятный срок, попробуйте 10m или 2h30m
+codecore.command.error.unknown_value=Неизвестное значение: %s
+codecore.command.error.no_permission=Вам это недоступно
+codecore.command.error.unknown_subcommand=Неизвестная подкоманда
+codecore.command.error.missing_argument=Не хватает аргумента: %s
+codecore.command.error.players_only=Эту команду может выполнить только игрок
+codecore.message.configs_reloaded=Настройки перезагружены
+codecore.command.usage.root=/codecore reload

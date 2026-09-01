@@ -1,0 +1,16 @@
+dependencies {
+    compileOnly 'com.mrleonardos:codesides:1.0.0'
+
+    shadowImplementation 'com.twelvemonkeys.imageio:imageio-webp:3.9.4'
+
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+    }
+}
