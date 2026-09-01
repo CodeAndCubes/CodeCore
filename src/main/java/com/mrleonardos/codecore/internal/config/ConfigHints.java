@@ -16,11 +16,16 @@ import com.mrleonardos.codecore.api.config.ConfigFormat;
  * Разбирать текст чужого исключения смысла нет: на кириллицу night-config отвечает «Invalid bare key», на
  * пробел в том же месте «Invalid separator ... in table name», и завтра формулировки поменяются. Поэтому
  * подсказка одна на любую ошибку разбора toml и говорит про частую причину, а не про эту.
+ *
+ * <p>
+ * Сама строка на английском, как и остальной лог ядра, а пример в ней кириллицей нарочно. Русский текст в
+ * консоли под cp866 превратится в мусор, английский останется читаемым, и учит здесь пример: даже
+ * покорёженный, он показывает кавычки на своём месте.
  */
 final class ConfigHints {
 
-    private static final String QUOTED_NAMES = "Частая причина: имя секции или ключа написано кириллицей, с пробелом или точкой. "
-        + "Такие имена toml принимает только в кавычках: [channels.\"Ярмарка\"], а не [channels.Ярмарка]";
+    private static final String QUOTED_NAMES = "Common cause: a section or key name written in Cyrillic, or with a space or a dot. "
+        + "TOML accepts such names only in quotes: [channels.\"Ярмарка\"], not [channels.Ярмарка]";
 
     private ConfigHints() {}
 
