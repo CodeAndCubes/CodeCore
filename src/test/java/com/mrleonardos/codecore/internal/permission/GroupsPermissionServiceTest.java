@@ -112,19 +112,6 @@ class GroupsPermissionServiceTest {
     }
 
     @Test
-    @DisplayName("пустое имя группы по умолчанию возвращается к заводскому")
-    void emptyGroupNameFallsBack() {
-        PermissionsSection section = new PermissionsSection();
-        section.defaultGroup = "";
-        section.opGroup = null;
-
-        section.normalize();
-
-        assertEquals(PermissionKeys.DEFAULT_GROUP, section.defaultGroup);
-        assertEquals(PermissionKeys.OPERATOR_GROUP, section.opGroup);
-    }
-
-    @Test
     @DisplayName("файл, правленный руками, не роняет первую же проверку")
     void handEditedFileIsRepaired() {
         CoreGroupsFile file = new CoreGroupsFile();

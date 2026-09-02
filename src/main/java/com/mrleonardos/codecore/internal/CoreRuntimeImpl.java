@@ -42,7 +42,7 @@ public final class CoreRuntimeImpl implements CoreRuntime {
     public CoreRuntimeImpl(Path configDirectory, Logger log) {
         this.services = new ServiceRegistryImpl(log);
         this.configs = new ConfigServiceImpl(new ConfigPaths(configDirectory), log);
-        this.sections = new CoreSections(configs);
+        this.sections = new CoreSections(configs, log);
         this.adapters = new AdapterRegistryImpl(services, log);
         this.serverQueue = new MainThreadQueue(SERVER_QUEUE, log);
         this.clientQueue = new MainThreadQueue(CLIENT_QUEUE, log);

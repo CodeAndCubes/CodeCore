@@ -24,6 +24,7 @@ import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.config.SectionSpec;
 import com.mrleonardos.codecore.api.config.StorageSettings;
 import com.mrleonardos.codecore.internal.CoreSections;
+import com.mrleonardos.codecore.internal.LogCapture;
 
 class MainConfigTest {
 
@@ -106,7 +107,7 @@ class MainConfigTest {
     @DisplayName("заводской файл линейки совпадает с описанным в дизайне")
     void factoryFileMatchesTheDesign() throws IOException {
         ConfigServiceImpl service = service();
-        new CoreSections(service);
+        new CoreSections(service, LOG);
         service.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         assertEquals(FACTORY, text());
@@ -116,11 +117,11 @@ class MainConfigTest {
     @DisplayName("повторная запись заводского файла ничего в нём не двигает")
     void writingTwiceChangesNothing() throws IOException {
         ConfigServiceImpl first = service();
-        new CoreSections(first);
+        new CoreSections(first, LOG);
         first.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         ConfigServiceImpl second = service();
-        new CoreSections(second);
+        new CoreSections(second, LOG);
         second.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         assertEquals(FACTORY, text());
@@ -130,7 +131,7 @@ class MainConfigTest {
     @DisplayName("секции разных объявителей лежат в одном файле")
     void sectionsFromDifferentModsShareTheFile() throws IOException {
         ConfigServiceImpl service = service();
-        new CoreSections(service);
+        new CoreSections(service, LOG);
         service.section(
             SectionSpec.of("economy", EconomySection.class)
                 .build());
@@ -152,14 +153,14 @@ class MainConfigTest {
     @DisplayName("секция мода, которого сняли с сервера, переживает запись")
     void sectionOfAnAbsentModSurvives() throws IOException {
         ConfigServiceImpl first = service();
-        new CoreSections(first);
+        new CoreSections(first, LOG);
         first.section(
             SectionSpec.of("economy", EconomySection.class)
                 .build());
         first.seal(Arrays.asList(ConfigRoles.PERMISSIONS, ConfigRoles.ECONOMY));
 
         ConfigServiceImpl second = service();
-        new CoreSections(second);
+        new CoreSections(second, LOG);
         second.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         String written = text();
@@ -172,7 +173,7 @@ class MainConfigTest {
     @DisplayName("секция, объявленная после записи файла, отклонена")
     void lateSectionIsRefused() {
         ConfigServiceImpl service = service();
-        new CoreSections(service);
+        new CoreSections(service, LOG);
         service.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         assertThrows(
@@ -186,7 +187,7 @@ class MainConfigTest {
     @DisplayName("секцию с занятым именем второй раз объявить нельзя")
     void sectionNameIsTakenOnce() {
         ConfigServiceImpl service = service();
-        new CoreSections(service);
+        new CoreSections(service, LOG);
 
         assertThrows(
             IllegalStateException.class,
@@ -253,7 +254,7 @@ class MainConfigTest {
     @DisplayName("заводской файл секций перекрытия не содержит")
     void factoryFileHasNoOverrides() throws IOException {
         ConfigServiceImpl service = service();
-        new CoreSections(service);
+        new CoreSections(service, LOG);
         service.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         for (String line : text().split("\n")) {
@@ -281,7 +282,7 @@ class MainConfigTest {
         writeMain("schemaVersion = 1\n[owners]\npermissions = \"luckperms\"\n");
 
         ConfigServiceImpl service = service();
-        new CoreSections(service);
+        new CoreSections(service, LOG);
         service.seal(Arrays.asList(ConfigRoles.PERMISSIONS, ConfigRoles.ECONOMY));
 
         assertTrue(text().contains("permissions = \"luckperms\""), text());
@@ -294,7 +295,7 @@ class MainConfigTest {
         writeMain("[owners\npermissions = \"auto\"\n");
 
         ConfigServiceImpl service = service();
-        new CoreSections(service);
+        new CoreSections(service, LOG);
         service.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         assertTrue(Files.isRegularFile(path().resolveSibling("config.toml" + ConfigKeys.BROKEN_SUFFIX)));
@@ -310,7 +311,7 @@ class MainConfigTest {
 
         try {
             ConfigServiceImpl service = service();
-            new CoreSections(service);
+            new CoreSections(service, LOG);
             service.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
             assertTrue(
@@ -326,13 +327,13 @@ class MainConfigTest {
     @DisplayName("комментарий человека в главном файле переживает запись")
     void humanCommentInTheMainFileSurvives() throws IOException {
         ConfigServiceImpl first = service();
-        new CoreSections(first);
+        new CoreSections(first, LOG);
         first.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         writeMain(text().replace("serverId = \"main\"", "serverId = \"main\"\n# так решили в 2026\nmyOwnKey = 7"));
 
         ConfigServiceImpl second = service();
-        new CoreSections(second);
+        new CoreSections(second, LOG);
         second.seal(Collections.singletonList(ConfigRoles.PERMISSIONS));
 
         assertTrue(text().contains("# так решили в 2026"), text());

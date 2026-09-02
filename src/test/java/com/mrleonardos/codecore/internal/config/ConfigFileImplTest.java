@@ -25,6 +25,7 @@ import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.config.ConfigScope;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
 import com.mrleonardos.codecore.api.config.Migration;
+import com.mrleonardos.codecore.internal.LogCapture;
 
 class ConfigFileImplTest {
 

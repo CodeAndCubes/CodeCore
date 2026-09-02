@@ -1,5 +1,7 @@
 package com.mrleonardos.codecore.internal;
 
+import org.apache.logging.log4j.Logger;
+
 import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.api.config.ConfigService;
 import com.mrleonardos.codecore.api.config.SectionSpec;
@@ -21,10 +23,10 @@ public final class CoreSections {
     private final ConfigFile<PermissionsSection> permissions;
     private final ConfigFile<ImagesSection> images;
 
-    public CoreSections(ConfigService configs) {
+    public CoreSections(ConfigService configs, Logger log) {
         this.permissions = configs.section(
             SectionSpec.of(PERMISSIONS_SECTION, PermissionsSection.class)
-                .validator(PermissionsSection::normalize)
+                .validator(section -> section.normalize(log))
                 .build());
         this.images = configs.section(
             SectionSpec.of(IMAGES_SECTION, ImagesSection.class)

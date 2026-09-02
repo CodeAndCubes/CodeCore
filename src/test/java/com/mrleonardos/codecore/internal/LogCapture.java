@@ -1,4 +1,4 @@
-package com.mrleonardos.codecore.internal.config;
+package com.mrleonardos.codecore.internal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ import org.apache.logging.log4j.core.appender.AbstractAppender;
  * больше негде. С Minecraft 1.7.10 приезжает log4j 2.0-beta9, готового тестового приёмника там нет,
  * поэтому он собран здесь из {@code AbstractAppender}.
  */
-final class LogCapture extends AbstractAppender {
+public final class LogCapture extends AbstractAppender {
 
     private static final String NAME = "capture";
 
@@ -30,7 +30,7 @@ final class LogCapture extends AbstractAppender {
     }
 
     /** Подцепиться к логгеру и ловить всё, что он пишет. */
-    static LogCapture attach(org.apache.logging.log4j.Logger target) {
+    public static LogCapture attach(org.apache.logging.log4j.Logger target) {
         org.apache.logging.log4j.core.Logger logger = (org.apache.logging.log4j.core.Logger) target;
         LogCapture capture = new LogCapture(logger);
         capture.start();
@@ -40,14 +40,14 @@ final class LogCapture extends AbstractAppender {
     }
 
     /** Отцепиться и вернуть логгеру прежний уровень. */
-    void detach() {
+    public void detach() {
         logger.removeAppender(this);
         logger.setLevel(previous);
         stop();
     }
 
     /** Всё написанное одной строкой: по ней удобно искать подстроки. */
-    String text() {
+    public String text() {
         return String.join("\n", lines);
     }
 
