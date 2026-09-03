@@ -41,8 +41,9 @@ public interface PermissionService {
      *
      * <p>
      * Вид отправителя решает вопрос сам: всё, кроме {@link SenderKind#PLAYER}, получает право без
-     * обращения к файлу. Реализации, которая работает по нику, а не по идентификатору, этот метод стоит
-     * переопределить: {@link CommandSender#name()} у неё под рукой.
+     * обращения к файлу. Игрок без ссылки на себя права не получает: такого отправителя не бывает, а
+     * ошибаться в сторону разрешения тут нельзя. Реализации, которая работает по нику, а не по
+     * идентификатору, этот метод стоит переопределить: {@link CommandSender#name()} у неё под рукой.
      */
     default boolean has(CommandSender sender, String node) {
         if (sender.kind() != SenderKind.PLAYER) {
@@ -50,7 +51,7 @@ public interface PermissionService {
         }
         PlayerRef player = sender.player()
             .orElse(null);
-        return player == null || has(player.id(), node);
+        return player != null && has(player.id(), node);
     }
 
     /** Группа игрока. */
