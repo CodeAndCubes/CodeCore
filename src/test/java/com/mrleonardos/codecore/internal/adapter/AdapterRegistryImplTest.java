@@ -197,16 +197,43 @@ class AdapterRegistryImplTest {
     }
 
     @Test
-    @DisplayName("до решения ролей владельца нет")
-    void ownerIsUnknownBeforeTheDecision() {
+    @DisplayName("до решения ролей вопрос о владельце и умениях отклонён")
+    void ownerAndMissingRefuseToAnswerBeforeTheDecision() {
         declare();
         offer("codeperms", RoleOwnerKind.MOD, true);
 
         assertFalse(adapters.decided());
-        assertNull(adapters.owner(ROLE));
+        IllegalStateException aboutOwner = assertThrows(IllegalStateException.class, () -> adapters.owner(ROLE));
+        IllegalStateException aboutMissing = assertThrows(IllegalStateException.class, () -> adapters.missing(ROLE));
+
+        assertTrue(
+            aboutOwner.getMessage()
+                .contains("post initialization"),
+            aboutOwner.getMessage());
+        assertTrue(
+            aboutMissing.getMessage()
+                .contains("decided()"),
+            aboutMissing.getMessage());
         assertEquals(
             "[codeperms]",
             adapters.candidates(ROLE)
+                .toString(),
+            "список кандидатов до решения спрашивать можно, он уже полный");
+    }
+
+    @Test
+    @DisplayName("после решения оба отвечают как прежде")
+    void ownerAndMissingAnswerAfterTheDecision() throws IOException {
+        declare();
+        offer("codeperms", RoleOwnerKind.MOD, true, HAS, GROUP);
+
+        adapters.decide(owners("auto"));
+
+        assertTrue(adapters.decided());
+        assertEquals("codeperms", adapters.owner(ROLE));
+        assertEquals(
+            "[tracks]",
+            adapters.missing(ROLE)
                 .toString());
     }
 

@@ -73,6 +73,7 @@ public final class AdapterRegistryImpl implements AdapterRegistry {
 
     @Override
     public String owner(String role) {
+        requireDecided("owner", role);
         RoleStatus status = statuses.get(role);
         return status == null ? null : status.owner();
     }
@@ -92,6 +93,7 @@ public final class AdapterRegistryImpl implements AdapterRegistry {
 
     @Override
     public Set<RoleCapability> missing(String role) {
+        requireDecided("missing", role);
         RoleStatus status = statuses.get(role);
         if (status != null) {
             return status.missing();
@@ -273,6 +275,16 @@ public final class AdapterRegistryImpl implements AdapterRegistry {
         if (decided) {
             throw new IllegalStateException(
                 "Roles are already decided, cannot " + action + " after post initialization");
+        }
+    }
+
+    private void requireDecided(String question, String role) {
+        if (!decided) {
+            throw new IllegalStateException(
+                "Roles are decided at the end of post initialization, " + question
+                    + "("
+                    + role
+                    + ") has no honest answer yet; ask decided() first");
         }
     }
 }
