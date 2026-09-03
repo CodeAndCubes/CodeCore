@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import com.mrleonardos.codecore.api.adapter.PermissionCapabilities;
 import com.mrleonardos.codecore.api.adapter.RoleCapability;
 import com.mrleonardos.codecore.api.service.PermissionService;
 
@@ -25,7 +26,8 @@ class BuiltinPermissionsContractTest extends PermissionServiceContract {
 
     @Override
     protected Set<RoleCapability> capabilities() {
-        return new HashSet<>(Arrays.asList(PermissionRole.HAS, PermissionRole.GROUP, PermissionRole.META));
+        return new HashSet<>(
+            Arrays.asList(PermissionCapabilities.HAS, PermissionCapabilities.GROUP, PermissionCapabilities.META));
     }
 
     @Override

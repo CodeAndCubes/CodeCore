@@ -4,13 +4,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.mrleonardos.codecore.api.adapter.PermissionCapabilities;
 import com.mrleonardos.codecore.api.adapter.RoleAdapter;
 import com.mrleonardos.codecore.api.adapter.RoleCapability;
 import com.mrleonardos.codecore.api.adapter.RoleOwnerKind;
 import com.mrleonardos.codecore.api.adapter.RoleServices;
 import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.service.PermissionService;
-import com.mrleonardos.codecore.internal.permission.PermissionRole;
 
 /**
  * Заявка на права от ForgeEssentials.
@@ -56,7 +56,8 @@ public final class ForgeEssentialsAdapter implements RoleAdapter {
 
     @Override
     public Set<RoleCapability> capabilities() {
-        return new HashSet<>(Arrays.asList(PermissionRole.HAS, PermissionRole.GROUP, PermissionRole.META));
+        return new HashSet<>(
+            Arrays.asList(PermissionCapabilities.HAS, PermissionCapabilities.GROUP, PermissionCapabilities.META));
     }
 
     @Override

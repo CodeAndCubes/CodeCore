@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.mrleonardos.codecore.CoreConstants;
 import com.mrleonardos.codecore.api.CodeApi;
+import com.mrleonardos.codecore.api.adapter.PermissionCapabilities;
 import com.mrleonardos.codecore.api.adapter.RoleAdapter;
 import com.mrleonardos.codecore.api.adapter.RoleCapability;
 import com.mrleonardos.codecore.api.adapter.RoleOwnerKind;
@@ -54,7 +55,8 @@ public final class BuiltinPermissions implements RoleAdapter {
 
     @Override
     public Set<RoleCapability> capabilities() {
-        return new HashSet<>(Arrays.asList(PermissionRole.HAS, PermissionRole.GROUP, PermissionRole.META));
+        return new HashSet<>(
+            Arrays.asList(PermissionCapabilities.HAS, PermissionCapabilities.GROUP, PermissionCapabilities.META));
     }
 
     @Override

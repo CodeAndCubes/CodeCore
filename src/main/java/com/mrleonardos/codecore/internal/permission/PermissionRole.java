@@ -1,6 +1,6 @@
 package com.mrleonardos.codecore.internal.permission;
 
-import com.mrleonardos.codecore.api.adapter.RoleCapability;
+import com.mrleonardos.codecore.api.adapter.PermissionCapabilities;
 import com.mrleonardos.codecore.api.adapter.RoleFallback;
 import com.mrleonardos.codecore.api.adapter.RoleServices;
 import com.mrleonardos.codecore.api.adapter.RoleSpec;
@@ -12,27 +12,10 @@ import com.mrleonardos.codecore.api.service.PermissionService;
  *
  * <p>
  * Перечень умений полный, а каждая заявка называет своё подмножество: разница и есть то, что на сервере
- * не работает.
+ * не работает. Сами имена умений лежат в {@link PermissionCapabilities}, чтобы их мог назвать и тот, у
+ * кого на руках только api-джар.
  */
 public final class PermissionRole {
-
-    /** Ответ на вопрос, есть ли у игрока право. */
-    public static final RoleCapability HAS = RoleCapability.of("has");
-
-    /** Имя группы игрока. */
-    public static final RoleCapability GROUP = RoleCapability.of("group");
-
-    /** Значения меты: префикс, лимит домов, что угодно ещё. */
-    public static final RoleCapability META = RoleCapability.of("meta");
-
-    /** Права, действующие только в мире, режиме или другом контексте. */
-    public static final RoleCapability CONTEXTS = RoleCapability.of("contexts");
-
-    /** Выдачи на срок, которые снимаются сами. */
-    public static final RoleCapability EXPIRY = RoleCapability.of("expiry");
-
-    /** Треки: порядок групп для повышения и понижения. */
-    public static final RoleCapability TRACKS = RoleCapability.of("tracks");
 
     /** Чем закрыта роль, оставшаяся ничьей: строка уходит в стартовую сводку. */
     private static final String OPERATORS = "permission checks fall back to the server operator list";
@@ -41,9 +24,15 @@ public final class PermissionRole {
 
     public static RoleSpec spec() {
         return RoleSpec.of(ConfigRoles.PERMISSIONS)
-            .capabilities(HAS, GROUP, META, CONTEXTS, EXPIRY, TRACKS)
+            .capabilities(
+                PermissionCapabilities.HAS,
+                PermissionCapabilities.GROUP,
+                PermissionCapabilities.META,
+                PermissionCapabilities.CONTEXTS,
+                PermissionCapabilities.EXPIRY,
+                PermissionCapabilities.TRACKS)
             .services(PermissionService.class)
-            .fallback(RoleFallback.of(OPERATORS, PermissionRole::operators, HAS))
+            .fallback(RoleFallback.of(OPERATORS, PermissionRole::operators, PermissionCapabilities.HAS))
             .build();
     }
 
