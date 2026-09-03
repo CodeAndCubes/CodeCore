@@ -6,8 +6,10 @@ import java.util.UUID;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import com.mrleonardos.codecore.api.command.CommandSender;
+import com.mrleonardos.codecore.api.command.SenderKind;
 import com.mrleonardos.codecore.api.service.PermissionService;
-import com.mrleonardos.codecore.api.util.PlayerNames;
+import com.mrleonardos.codecore.platform.PlayerNames;
 
 /**
  * Права из ядра UltraMine.
@@ -67,6 +69,14 @@ final class UltraMinePermissions implements PermissionService {
             return true;
         }
         return Reflected.flag(Reflected.call(hasGlobally, handler, sender.getCommandSenderName(), node));
+    }
+
+    @Override
+    public boolean has(CommandSender sender, String node) {
+        if (sender.kind() != SenderKind.PLAYER) {
+            return true;
+        }
+        return Reflected.flag(Reflected.call(hasGlobally, handler, sender.name(), node));
     }
 
     @Override

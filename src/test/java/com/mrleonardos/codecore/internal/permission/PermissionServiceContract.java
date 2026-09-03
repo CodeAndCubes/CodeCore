@@ -11,7 +11,9 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.mrleonardos.codecore.api.adapter.PermissionCapabilities;
 import com.mrleonardos.codecore.api.adapter.RoleCapability;
+import com.mrleonardos.codecore.api.command.FakeSender;
 import com.mrleonardos.codecore.api.service.PermissionService;
 
 /**
@@ -46,7 +48,7 @@ public abstract class PermissionServiceContract {
     @Test
     @DisplayName("выданное право видно, невыданное нет")
     void grantedNodeIsVisible() {
-        assumeSupported(PermissionRole.HAS);
+        assumeSupported(PermissionCapabilities.HAS);
         UUID player = UUID.randomUUID();
         grant(player, NODE);
 
@@ -57,7 +59,7 @@ public abstract class PermissionServiceContract {
     @Test
     @DisplayName("игрок, о котором ничего не известно, прав не получает")
     void unknownPlayerHasNothing() {
-        assumeSupported(PermissionRole.HAS);
+        assumeSupported(PermissionCapabilities.HAS);
 
         assertFalse(service().has(UUID.randomUUID(), NODE));
     }
@@ -65,7 +67,7 @@ public abstract class PermissionServiceContract {
     @Test
     @DisplayName("группа игрока называется")
     void groupIsReported() {
-        assumeSupported(PermissionRole.GROUP);
+        assumeSupported(PermissionCapabilities.GROUP);
         UUID player = UUID.randomUUID();
         assign(player, "moderator");
 
@@ -73,9 +75,31 @@ public abstract class PermissionServiceContract {
     }
 
     @Test
+    @DisplayName("консоль, RCON и командный блок получают право без обращения к файлу")
+    void nonPlayersAreAllowed() {
+        assumeSupported(PermissionCapabilities.HAS);
+
+        assertTrue(service().has(FakeSender.console(), NODE));
+        assertTrue(service().has(FakeSender.rcon(), NODE));
+        assertTrue(service().has(FakeSender.commandBlock(0, 1, 2, 3), NODE));
+    }
+
+    @Test
+    @DisplayName("право игрока проверяется по ссылке из отправителя")
+    void playerIsCheckedByItsReference() {
+        assumeSupported(PermissionCapabilities.HAS);
+        UUID player = UUID.randomUUID();
+        grant(player, NODE);
+
+        assertTrue(service().has(FakeSender.player(player, "Steve"), NODE));
+        assertFalse(service().has(FakeSender.player(player, "Steve"), OTHER_NODE));
+        assertFalse(service().has(FakeSender.player(UUID.randomUUID(), "Alex"), NODE));
+    }
+
+    @Test
     @DisplayName("мета берётся из хранилища, а на её месте пусто отдаётся запасное")
     void metaIsReported() {
-        assumeSupported(PermissionRole.META);
+        assumeSupported(PermissionCapabilities.META);
         UUID player = UUID.randomUUID();
         meta(player, PREFIX, "&c[M]");
 
