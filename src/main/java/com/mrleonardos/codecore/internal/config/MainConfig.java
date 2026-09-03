@@ -52,9 +52,7 @@ public final class MainConfig {
     private static final String LOG_CHECKS_KEY = "logChecks";
     private static final String DESCRIPTION = ConfigKeys.LINEUP_DIRECTORY + "/" + ConfigKeys.MAIN_FILE;
 
-    private static final String[] HEADER = {
-        "Главный файл линейки Code*. Описание над полем мода мод пишет заново при каждой записи,",
-        "поэтому свою заметку кладите над своим ключом: такую строку он не трогает." };
+    private static final String[] HEADER = { "Главный файл линейки Code*." };
 
     private static final String[] OWNERS_COMMENT = { "Кто держит роль целиком.",
         "\"auto\" наш мод, если он стоит; \"off\" роль не занята никем; иначе имя владельца.",
@@ -182,7 +180,7 @@ public final class MainConfig {
             return;
         }
         document.store(root, RootSection.class, SCHEMA_VERSION);
-        TomlBinder.comment(document.config(), ConfigKeys.SCHEMA_VERSION, HEADER);
+        TomlBinder.comment(document.config(), ConfigKeys.SCHEMA_VERSION, ConfigHeader.with(HEADER));
         if (sealed) {
             writeOwners();
         }

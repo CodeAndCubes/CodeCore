@@ -355,6 +355,46 @@ class ConfigFileImplTest {
         assertTrue(text().contains("# моя над tiles"), text());
     }
 
+    @Test
+    @DisplayName("правило про комментарии стоит в шапке любого файла и не двоится при повторной записи")
+    void theCommentRuleStandsInEveryHeaderOnce() throws IOException {
+        ConfigFile<Settings> file = open(spec().build());
+        String created = text();
+
+        assertTrue(created.contains("Свою заметку кладите над своим ключом"), created);
+
+        file.save();
+        file.save();
+
+        assertEquals(created, text(), "повторная запись шапку не двоит");
+        assertEquals(1, countOf(text(), "Свою заметку кладите над своим ключом"), text());
+    }
+
+    @Test
+    @DisplayName("в машинный json правило не попадает: комментариев там нет вовсе")
+    void theRuleStaysOutOfMachineJson() throws IOException {
+        ConfigFile<Settings> file = service().open(
+            ConfigSpec.of(MODID, NAME, Settings.class)
+                .role(ConfigRoles.CORE)
+                .format(ConfigFormat.JSON)
+                .build());
+
+        String json = read(file.path());
+
+        assertFalse(json.contains("Свою заметку"), json);
+        assertFalse(json.contains("#"), json);
+    }
+
+    private static int countOf(String text, String piece) {
+        int found = 0;
+        int at = text.indexOf(piece);
+        while (at >= 0) {
+            found++;
+            at = text.indexOf(piece, at + piece.length());
+        }
+        return found;
+    }
+
     private ConfigSpec.Builder<Settings> spec() {
         return ConfigSpec.of(MODID, NAME, Settings.class)
             .role(ConfigRoles.CORE)
