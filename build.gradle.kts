@@ -1,9 +1,36 @@
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 
 plugins {
 	id("com.gtnewhorizons.gtnhconvention")
 	id("com.mrleonardos.codesides") version "1.0.0"
+}
+
+// Хелперы платформы (Players, PlayerNames, PlayerRefs) едут отдельным артефактом с классификатором
+// platform. В api им не место: тип игрока там и есть предмет разговора. Соседним модам нужен только их
+// слой платформы, поэтому давать им весь dev-джар (а с ним и весь internal ядра на компиляционный путь)
+// ради двух классов не стоит.
+val platformJar = tasks.register<Jar>("platformJar") {
+	archiveBaseName.set(project.property("modId") as String)
+	archiveClassifier.set("platform")
+	from(
+		project.extensions.getByType(JavaPluginExtension::class.java)
+			.sourceSets.getByName("main").output) {
+		include("com/mrleonardos/codecore/platform/**")
+	}
+}
+
+tasks.named("assemble") {
+	dependsOn(platformJar)
+}
+
+extensions.configure(PublishingExtension::class.java) {
+	publications.withType(MavenPublication::class.java)
+		.configureEach {
+			artifact(platformJar)
+		}
 }
 
 codeSides {

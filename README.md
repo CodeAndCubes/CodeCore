@@ -17,8 +17,17 @@ CodeChat и остальные.
 Нужен **JDK 25**: GTNH-конвенция компилирует на новейшем toolchain, а байткод понижает до Java 8 через
 Jabel. Готовый мод работает на обычной Java 8.
 
-Публикуются два артефакта: сам мод и `codecore-<версия>-api.jar`, в котором только пакет `api`; против него
-компилируются моды-потребители.
+Публикуются три артефакта: сам мод, `codecore-<версия>-api.jar` с одним пакетом `api` и
+`codecore-<версия>-platform.jar` с одним пакетом `platform`. Против api компилируются моды-потребители:
+типов Minecraft, Forge, netty, LWJGL и Mojang там быть не должно, это стережёт `ImportGateTest`. В
+`platform` лежит то, чему тип игры нужен по существу: поиск игрока в сети, ник по идентификатору, переход
+от ссылки на игрока к его сущности. Этот артефакт берут `compileOnly` и только слои платформы соседних
+модов:
+
+```groovy
+compileOnly 'com.mrleonardos.codecore:CodeCore:0.1.0:api'
+compileOnly 'com.mrleonardos.codecore:CodeCore:0.1.0:platform'
+```
 
 ### Шум в dev-запуске
 

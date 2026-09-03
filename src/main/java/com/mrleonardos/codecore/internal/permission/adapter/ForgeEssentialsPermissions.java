@@ -8,7 +8,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.mrleonardos.codecore.api.service.PermissionService;
-import com.mrleonardos.codecore.api.util.PlayerNames;
+import com.mrleonardos.codecore.platform.PlayerNames;
 
 /**
  * Права из ForgeEssentials.
