@@ -24,6 +24,9 @@ public final class ConfigRoles {
     /** Чат. */
     public static final String CHAT = "chat";
 
+    /** Служебные мелочи сервера: рассылка, задания по расписанию, перезапуск, очистка, слоты. */
+    public static final String UTILS = "utils";
+
     /** Наибольшая длина имени роли. */
     public static final int MAX_LENGTH = 32;
 
