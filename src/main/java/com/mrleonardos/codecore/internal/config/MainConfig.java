@@ -53,8 +53,8 @@ public final class MainConfig {
     private static final String DESCRIPTION = ConfigKeys.LINEUP_DIRECTORY + "/" + ConfigKeys.MAIN_FILE;
 
     private static final String[] HEADER = {
-        "Главный файл линейки Code*. Комментарии к полям мод пишет заново при каждой записи,",
-        "ваши собственные строки он не трогает." };
+        "Главный файл линейки Code*. Описание над полем мода мод пишет заново при каждой записи,",
+        "поэтому свою заметку кладите над своим ключом: такую строку он не трогает." };
 
     private static final String[] OWNERS_COMMENT = { "Кто держит роль целиком.",
         "\"auto\" наш мод, если он стоит; \"off\" роль не занята никем; иначе имя владельца.",

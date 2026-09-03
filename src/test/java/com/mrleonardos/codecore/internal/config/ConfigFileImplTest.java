@@ -328,6 +328,33 @@ class ConfigFileImplTest {
         assertEquals(original, text(), "файл с оборванной цепочкой не трогают вовсе");
     }
 
+    @Test
+    @DisplayName("строка человека над полем мода уступает описанию поля, над своим ключом остаётся")
+    void commentOwnershipIsSplitByWhoOwnsTheKey() throws IOException {
+        write("schemaVersion = 1\n" + "# моя строка\n" + "greeting = \"моё\"\n" + "# моя над чужим\n" + "myOwn = 1\n");
+
+        open(spec().build());
+
+        assertTrue(text().contains("greeting = \"моё\""), text());
+        assertTrue(text().contains("tiles = 4"), text());
+        assertTrue(text().contains("Как здороваемся"), "описание поля мода на месте: " + text());
+        assertFalse(text().contains("# моя строка"), "строка над полем мода уступила описанию: " + text());
+        assertTrue(text().contains("# моя над чужим"), "строка над своим ключом остаётся: " + text());
+        assertTrue(text().contains("myOwn = 1"), text());
+    }
+
+    @Test
+    @DisplayName("над полем без описания строка человека тоже остаётся: моду там сказать нечего")
+    void commentOverAnUndocumentedFieldSurvives() throws IOException {
+        write("# моя над tiles\n" + "tiles = 7\n" + "greeting = \"моё\"\n");
+
+        Settings settings = open(spec().build()).get();
+
+        assertEquals(7, settings.tiles);
+        assertTrue(text().contains(ConfigKeys.SCHEMA_VERSION), "дозапись сработала: " + text());
+        assertTrue(text().contains("# моя над tiles"), text());
+    }
+
     private ConfigSpec.Builder<Settings> spec() {
         return ConfigSpec.of(MODID, NAME, Settings.class)
             .role(ConfigRoles.CORE)
