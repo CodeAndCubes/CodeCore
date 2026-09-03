@@ -3,7 +3,9 @@ package com.mrleonardos.codecore.internal.config;
 import com.mrleonardos.codecore.api.config.Comment;
 
 /** Секция {@code [storage]}: как роли хранят свои данные. */
-@Comment("Хранилище: значение для всех ролей сразу.")
+@Comment({ "Хранилище: значение для всех ролей сразу.",
+    "Отличие одной роли пишется соседней секцией, только теми ключами, которые отличаются:", "[storage.economy]",
+    "provider = \"sql\"", "autosaveSeconds = 120" })
 public final class StorageSection {
 
     /** Встроенное хранилище: файлы рядом с конфигами. */
