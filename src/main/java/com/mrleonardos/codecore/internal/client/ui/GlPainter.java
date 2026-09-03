@@ -12,8 +12,8 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import com.mrleonardos.codecore.api.client.image.ImageHandle;
-import com.mrleonardos.codecore.api.client.ui.render.Blur;
 import com.mrleonardos.codecore.api.client.ui.render.Painter;
+import com.mrleonardos.codecore.internal.client.image.TexturedHandle;
 
 public final class GlPainter implements Painter {
 
@@ -47,10 +47,10 @@ public final class GlPainter implements Painter {
 
     @Override
     public void image(ImageHandle image, int x, int y, int width, int height, float alpha) {
-        if (image == null || !image.ready()) {
+        if (!(image instanceof TexturedHandle) || !image.ready()) {
             return;
         }
-        bind(image.texture());
+        bind(((TexturedHandle) image).texture());
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glColor4f(FULL, FULL, FULL, alpha);
 
@@ -80,12 +80,12 @@ public final class GlPainter implements Painter {
 
     @Override
     public boolean blur(int left, int top, int right, int bottom, float strength) {
-        return Blur.draw(left, top, right, bottom, strength);
+        return GlBlur.draw(left, top, right, bottom, strength);
     }
 
     @Override
     public boolean blurAvailable() {
-        return Blur.available();
+        return GlBlur.available();
     }
 
     @Override

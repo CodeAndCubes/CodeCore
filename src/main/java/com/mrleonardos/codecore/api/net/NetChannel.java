@@ -1,7 +1,5 @@
 package com.mrleonardos.codecore.api.net;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import com.mrleonardos.codecore.api.actor.PlayerRef;
 
 /**
@@ -31,9 +29,6 @@ public interface NetChannel {
 
     /** Отправить перечисленным игрокам; ушедшие с сервера пропускаются. */
     void toPlayers(Packet packet, Iterable<PlayerRef> players);
-
-    /** Отправить одному игроку; уходит со сносом старых подписей. */
-    void toPlayer(Packet packet, EntityPlayerMP player);
 
     /** Отправить всем на сервере. */
     void toAll(Packet packet);

@@ -3,9 +3,6 @@ package com.mrleonardos.codecore.internal.permission.adapter;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import com.mrleonardos.codecore.api.command.CommandSender;
 import com.mrleonardos.codecore.api.command.SenderKind;
 import com.mrleonardos.codecore.api.service.PermissionService;
@@ -61,14 +58,6 @@ final class UltraMinePermissions implements PermissionService {
     public boolean has(UUID player, String node) {
         String name = nameOf(player);
         return name != null && Reflected.flag(Reflected.call(hasGlobally, handler, name, node));
-    }
-
-    @Override
-    public boolean has(ICommandSender sender, String node) {
-        if (!(sender instanceof EntityPlayerMP)) {
-            return true;
-        }
-        return Reflected.flag(Reflected.call(hasGlobally, handler, sender.getCommandSenderName(), node));
     }
 
     @Override

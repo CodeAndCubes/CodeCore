@@ -3,7 +3,6 @@ package com.mrleonardos.codecore.internal.command;
 import java.util.Map;
 
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -23,18 +22,8 @@ public final class CommandContextImpl implements CommandContext {
     }
 
     @Override
-    public ICommandSender sender() {
-        return sender;
-    }
-
-    @Override
     public CommandSender caller() {
         return Senders.of(sender);
-    }
-
-    @Override
-    public EntityPlayerMP player() {
-        return sender instanceof EntityPlayerMP ? (EntityPlayerMP) sender : null;
     }
 
     @Override

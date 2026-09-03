@@ -1,5 +1,6 @@
 package com.mrleonardos.codecore.api;
 
+import com.mrleonardos.codecore.api.actor.PlayerDirectory;
 import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.api.command.CommandService;
 import com.mrleonardos.codecore.api.config.ConfigService;
@@ -33,4 +34,7 @@ public interface CoreRuntime {
 
     /** Команды сервера. */
     CommandService commands();
+
+    /** Кто сейчас на сервере. */
+    PlayerDirectory players();
 }

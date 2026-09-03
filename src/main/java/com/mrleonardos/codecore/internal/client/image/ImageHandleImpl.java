@@ -2,7 +2,6 @@ package com.mrleonardos.codecore.internal.client.image;
 
 import net.minecraft.util.ResourceLocation;
 
-import com.mrleonardos.codecore.api.client.image.ImageHandle;
 import com.mrleonardos.codecore.api.client.image.ImageState;
 
 /**
@@ -16,7 +15,7 @@ import com.mrleonardos.codecore.api.client.image.ImageState;
  * Отпущенный handle переходит в FAILED и обратно уже не возвращается: сервис его выбросил, догрузить
  * картинку некому, и виджет должен нарисовать запасной вариант, а не остаться в вечном LOADING.
  */
-final class ImageHandleImpl implements ImageHandle {
+final class ImageHandleImpl implements TexturedHandle {
 
     private volatile ImageState state = ImageState.LOADING;
     private volatile ResourceLocation texture;

@@ -1,7 +1,5 @@
 package com.mrleonardos.codecore.api.client.image;
 
-import net.minecraft.util.ResourceLocation;
-
 /**
  * Ответ на просьбу о картинке.
  *
@@ -16,7 +14,4 @@ public interface ImageHandle {
 
     /** Готова ли картинка к отрисовке. */
     boolean ready();
-
-    /** Текстура или {@code null}, пока картинка не готова. */
-    ResourceLocation texture();
 }

@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.internal.net.AvatarConfigPacket;
 import com.mrleonardos.codecore.internal.net.CorePackets;
+import com.mrleonardos.codecore.platform.PlayerRefs;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
@@ -34,6 +35,6 @@ public final class AvatarConfigSender {
                 new AvatarConfigPacket(
                     settings.get()
                         .toConfig()),
-                (EntityPlayerMP) event.player);
+                PlayerRefs.of((EntityPlayerMP) event.player));
     }
 }

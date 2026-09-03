@@ -3,7 +3,6 @@ package com.mrleonardos.codecore.internal.command;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,22 +82,20 @@ class CommandBridgeTest {
     }
 
     @Test
-    @DisplayName("подсказки собираются с обеих подписей, пока живы обе")
-    void suggestionsAreAskedOnBothSignatures() {
+    @DisplayName("подсказки типа доезжают до игры, а отправитель приходит без типов игры")
+    void suggestionsReachTheGame() {
         CommandBridge bridge = new CommandBridge(
             CommandNode.literal("test")
-                .arg("who", new BothWays())
+                .arg("who", new Suggesting())
                 .executes(context -> {}));
 
         List<String> options = bridge.addTabCompletionOptions(new Console(), new String[] { "" });
 
-        assertTrue(options.contains("новая"), options.toString());
-        assertTrue(options.contains("старая"), options.toString());
-        assertEquals(2, options.size(), "повторов быть не должно");
+        assertEquals(Arrays.asList("console"), options);
     }
 
-    /** Тип, у которого переопределены обе подписи: так видно, что мост спрашивает обе. */
-    private static final class BothWays implements ArgumentType<String> {
+    /** Тип, который подсказывает вид отправителя: так видно, что мост отдаёт ему CommandSender. */
+    private static final class Suggesting implements ArgumentType<String> {
 
         @Override
         public String parse(String raw) {
@@ -107,12 +104,10 @@ class CommandBridgeTest {
 
         @Override
         public List<String> suggestions(CommandSender sender, String partial) {
-            return Arrays.asList("новая");
-        }
-
-        @Override
-        public List<String> suggestions(ICommandSender sender, String partial) {
-            return Arrays.asList("старая");
+            return Arrays.asList(
+                sender.kind()
+                    .name()
+                    .toLowerCase(java.util.Locale.ROOT));
         }
     }
 

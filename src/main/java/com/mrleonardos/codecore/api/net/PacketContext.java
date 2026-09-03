@@ -2,8 +2,6 @@ package com.mrleonardos.codecore.api.net;
 
 import java.util.Optional;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import com.mrleonardos.codecore.api.actor.PlayerRef;
 
 /**
@@ -20,17 +18,9 @@ public interface PacketContext {
      *
      * <p>
      * Единственный источник правды об отправителе: имя или идентификатор внутри самого пакета доверия не
-     * заслуживают. Со сносом старых подписей остаётся только этот метод.
+     * заслуживают.
      */
     Optional<PlayerRef> player();
-
-    /**
-     * Игрок, приславший пакет; на клиенте {@code null}.
-     *
-     * <p>
-     * Уходит со сносом старых подписей, вместо него {@link #player()}.
-     */
-    EntityPlayerMP sender();
 
     /** Обрабатывается ли пакет на сервере. */
     boolean onServer();

@@ -1,5 +1,6 @@
 package com.mrleonardos.codecore.api;
 
+import com.mrleonardos.codecore.api.actor.PlayerDirectory;
 import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.api.command.CommandService;
 import com.mrleonardos.codecore.api.config.ConfigService;
@@ -52,6 +53,11 @@ public final class CodeApi {
     /** Команды сервера: дерево подкоманд с правами и автодополнением. */
     public static CommandService commands() {
         return runtime().commands();
+    }
+
+    /** Кто сейчас на сервере: ссылки на игроков по нику и по идентификатору. */
+    public static PlayerDirectory players() {
+        return runtime().players();
     }
 
     /**

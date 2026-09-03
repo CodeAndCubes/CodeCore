@@ -4,9 +4,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import com.mrleonardos.codecore.api.service.PermissionService;
 import com.mrleonardos.codecore.platform.PlayerNames;
 
@@ -72,14 +69,6 @@ final class ForgeEssentialsPermissions implements PermissionService {
     @Override
     public boolean has(UUID player, String node) {
         return Reflected.flag(ask(checkUserPermission, player, node));
-    }
-
-    @Override
-    public boolean has(ICommandSender sender, String node) {
-        if (!(sender instanceof EntityPlayerMP)) {
-            return true;
-        }
-        return has(((EntityPlayerMP) sender).getUniqueID(), node);
     }
 
     @Override

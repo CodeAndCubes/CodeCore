@@ -9,8 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.util.ResourceLocation;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -261,11 +259,6 @@ class PainterSurfaceTest {
         @Override
         public boolean ready() {
             return true;
-        }
-
-        @Override
-        public ResourceLocation texture() {
-            return null;
         }
     }
 }

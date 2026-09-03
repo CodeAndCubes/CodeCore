@@ -24,11 +24,6 @@ public final class PacketContextImpl implements PacketContext {
     }
 
     @Override
-    public EntityPlayerMP sender() {
-        return sender;
-    }
-
-    @Override
     public boolean onServer() {
         return onServer;
     }

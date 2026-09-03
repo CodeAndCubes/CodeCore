@@ -2,9 +2,6 @@ package com.mrleonardos.codecore.internal.permission;
 
 import java.util.UUID;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import com.mrleonardos.codecore.api.service.PermissionService;
 
 /**
@@ -34,14 +31,6 @@ final class OperatorPermissions implements PermissionService {
     @Override
     public boolean has(UUID player, String node) {
         return operators.isOperator(player);
-    }
-
-    @Override
-    public boolean has(ICommandSender sender, String node) {
-        if (!(sender instanceof EntityPlayerMP)) {
-            return true;
-        }
-        return has(((EntityPlayerMP) sender).getUniqueID(), node);
     }
 
     @Override

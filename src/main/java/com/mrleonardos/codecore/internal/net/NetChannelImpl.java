@@ -63,8 +63,7 @@ public final class NetChannelImpl implements NetChannel {
         sides.put(type, side);
     }
 
-    @Override
-    public void toPlayer(Packet packet, EntityPlayerMP player) {
+    private void toEntity(Packet packet, EntityPlayerMP player) {
         FMLEmbeddedChannel channel = outbound(packet, PacketSide.CLIENT_BOUND);
         channel.attr(FMLOutboundHandler.FML_MESSAGETARGET)
             .set(OutboundTarget.PLAYER);
@@ -77,7 +76,7 @@ public final class NetChannelImpl implements NetChannel {
     public void toPlayer(Packet packet, PlayerRef player) {
         EntityPlayerMP online = PlayerRefs.online(player);
         if (online != null) {
-            toPlayer(packet, online);
+            toEntity(packet, online);
         }
     }
 

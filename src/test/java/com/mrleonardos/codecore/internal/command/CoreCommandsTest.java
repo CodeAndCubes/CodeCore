@@ -10,9 +10,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +20,8 @@ import com.mrleonardos.codecore.api.adapter.RoleChoice;
 import com.mrleonardos.codecore.api.adapter.RoleStatus;
 import com.mrleonardos.codecore.api.command.CommandContext;
 import com.mrleonardos.codecore.api.command.CommandNode;
+import com.mrleonardos.codecore.api.command.CommandSender;
+import com.mrleonardos.codecore.api.command.FakeSender;
 
 class CoreCommandsTest {
 
@@ -86,13 +85,8 @@ class CoreCommandsTest {
         private final List<String> lines = new ArrayList<>();
 
         @Override
-        public ICommandSender sender() {
-            return null;
-        }
-
-        @Override
-        public EntityPlayerMP player() {
-            return null;
+        public CommandSender caller() {
+            return FakeSender.console();
         }
 
         @Override

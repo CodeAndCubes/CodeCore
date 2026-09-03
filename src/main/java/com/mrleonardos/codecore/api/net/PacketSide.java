@@ -1,24 +1,17 @@
 package com.mrleonardos.codecore.api.net;
 
-import cpw.mods.fml.relauncher.Side;
-
-/** Направление пакета: кто его получает. */
+/**
+ * Направление пакета: кто его получает.
+ *
+ * <p>
+ * Сопоставление со стороной сетевого слоя игры делает диспетчер ядра: наружу из api тип стороны не
+ * торчит.
+ */
 public enum PacketSide {
 
     /** От сервера клиенту. */
-    CLIENT_BOUND(Side.CLIENT),
+    CLIENT_BOUND,
 
     /** От клиента серверу. */
-    SERVER_BOUND(Side.SERVER);
-
-    private final Side receiving;
-
-    PacketSide(Side receiving) {
-        this.receiving = receiving;
-    }
-
-    /** Сторона, на которой пакет допустимо обрабатывать. */
-    public Side receivingSide() {
-        return receiving;
-    }
+    SERVER_BOUND
 }

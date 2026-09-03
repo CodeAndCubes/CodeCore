@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,31 +41,11 @@ class ImportGateTest {
      * Классы api, которым типы платформы пока разрешены.
      *
      * <p>
-     * Все до одного снимаются на третьем шаге ченджа api-without-platform, когда старые подписи уходят из
-     * api. Список закрытый: любой новый класс api со ссылкой на платформу роняет сборку сразу, а
-     * привыкнуть к красному тесту не выйдет, потому что он зелёный.
+     * Список пуст, и это конец работы: в публичной поверхности ядра не осталось ни одного типа игры,
+     * Forge, netty, LWJGL и Mojang. Пополнять его нечем и незачем, а новый класс api со ссылкой на
+     * платформу роняет сборку сразу.
      */
-    private static final List<String> UNTIL_THE_OLD_SIGNATURES_GO = Arrays.asList(
-        // ICommandSender и EntityPlayerMP в подписях команд
-        API + "/command/ArgumentType",
-        API + "/command/ArgumentTypes",
-        API + "/command/CommandContext",
-        API + "/service/PermissionService",
-        // ByteBuf, IMessage и Side в подписях сети
-        API + "/net/Codec",
-        API + "/net/NettyView",
-        API + "/net/NetChannel",
-        API + "/net/Packet",
-        API + "/net/PacketContext",
-        API + "/net/PacketSide",
-        // ResourceLocation, Tessellator, GL и FontRenderer в клиентском тулките
-        API + "/client/image/ImageHandle",
-        API + "/client/ui/render/Blur",
-        API + "/client/ui/render/Images",
-        API + "/client/ui/widget/ContextMenu",
-        // переходники на время переезда соседей в пакет платформы
-        API + "/util/PlayerNames",
-        API + "/util/Players");
+    private static final List<String> UNTIL_THE_OLD_SIGNATURES_GO = Collections.emptyList();
 
     @Test
     @DisplayName("новых типов платформы в api не появилось")

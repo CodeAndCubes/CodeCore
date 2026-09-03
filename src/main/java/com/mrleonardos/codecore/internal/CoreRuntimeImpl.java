@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import org.apache.logging.log4j.Logger;
 
 import com.mrleonardos.codecore.api.CoreRuntime;
+import com.mrleonardos.codecore.api.actor.PlayerDirectory;
 import com.mrleonardos.codecore.api.adapter.AdapterRegistry;
 import com.mrleonardos.codecore.api.command.CommandService;
 import com.mrleonardos.codecore.api.config.ConfigService;
@@ -20,6 +21,7 @@ import com.mrleonardos.codecore.internal.schedule.MainThreadQueue;
 import com.mrleonardos.codecore.internal.schedule.SchedulerImpl;
 import com.mrleonardos.codecore.internal.schedule.TickDriver;
 import com.mrleonardos.codecore.internal.service.ServiceRegistryImpl;
+import com.mrleonardos.codecore.platform.ServerPlayers;
 
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
@@ -38,6 +40,7 @@ public final class CoreRuntimeImpl implements CoreRuntime {
     private final NetworkServiceImpl network;
     private final CommandServiceImpl commands;
     private final TickDriver tickDriver;
+    private final ServerPlayers players;
 
     public CoreRuntimeImpl(Path configDirectory, Logger log) {
         this.services = new ServiceRegistryImpl(log);
@@ -50,6 +53,12 @@ public final class CoreRuntimeImpl implements CoreRuntime {
         this.network = new NetworkServiceImpl(scheduler, log);
         this.commands = new CommandServiceImpl(log);
         this.tickDriver = new TickDriver(serverQueue, clientQueue);
+        this.players = new ServerPlayers();
+    }
+
+    @Override
+    public PlayerDirectory players() {
+        return players;
     }
 
     @Override

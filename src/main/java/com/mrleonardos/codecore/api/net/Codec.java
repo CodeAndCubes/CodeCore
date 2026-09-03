@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import io.netty.buffer.ByteBuf;
-
 /**
  * Чтение и запись значений, которых не хватает в голом {@link CodeBuffer}.
  *
@@ -20,10 +18,6 @@ import io.netty.buffer.ByteBuf;
  * Кончившийся посреди чтения буфер тоже даёт {@link MalformedPacketException}, а не
  * {@code IndexOutOfBoundsException} из сетевой библиотеки: мод-потребитель ловит одно исключение и
  * продолжает работать.
- *
- * <p>
- * Перегрузки на {@code ByteBuf} доживают до переезда потребителей на {@link CodeBuffer} и делают ровно то
- * же самое. Новый код пишется на {@link CodeBuffer}.
  */
 public final class Codec {
 
@@ -146,68 +140,6 @@ public final class Codec {
     public static String readOptionalString(CodeBuffer buffer) {
         require(buffer, BOOLEAN_BYTES);
         return buffer.readBoolean() ? readString(buffer) : null;
-    }
-
-    public static void writeString(ByteBuf buffer, String value) {
-        writeString(view(buffer), value);
-    }
-
-    public static String readString(ByteBuf buffer) {
-        return readString(view(buffer));
-    }
-
-    public static void writeUuid(ByteBuf buffer, UUID value) {
-        writeUuid(view(buffer), value);
-    }
-
-    public static UUID readUuid(ByteBuf buffer) {
-        return readUuid(view(buffer));
-    }
-
-    public static <E extends Enum<E>> void writeEnum(ByteBuf buffer, E value) {
-        writeEnum(view(buffer), value);
-    }
-
-    public static <E extends Enum<E>> E readEnum(ByteBuf buffer, Class<E> type) {
-        return readEnum(view(buffer), type);
-    }
-
-    public static void writeStrings(ByteBuf buffer, Collection<String> values) {
-        writeStrings(view(buffer), values);
-    }
-
-    public static List<String> readStrings(ByteBuf buffer) {
-        return readStrings(view(buffer));
-    }
-
-    public static void writeUuids(ByteBuf buffer, Collection<UUID> values) {
-        writeUuids(view(buffer), values);
-    }
-
-    public static List<UUID> readUuids(ByteBuf buffer) {
-        return readUuids(view(buffer));
-    }
-
-    public static void writeBlob(ByteBuf buffer, byte[] value) {
-        writeBlob(view(buffer), value);
-    }
-
-    public static byte[] readBlob(ByteBuf buffer) {
-        return readBlob(view(buffer));
-    }
-
-    /** Записать необязательное значение: сначала признак наличия, потом само значение. */
-    public static void writeOptionalString(ByteBuf buffer, String value) {
-        writeOptionalString(view(buffer), value);
-    }
-
-    /** Прочитать необязательное значение; {@code null}, если его не было. */
-    public static String readOptionalString(ByteBuf buffer) {
-        return readOptionalString(view(buffer));
-    }
-
-    private static CodeBuffer view(ByteBuf buffer) {
-        return new NettyView(buffer);
     }
 
     private static void writeSize(CodeBuffer buffer, int size) {

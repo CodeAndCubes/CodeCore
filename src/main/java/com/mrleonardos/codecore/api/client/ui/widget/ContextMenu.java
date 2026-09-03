@@ -2,9 +2,6 @@ package com.mrleonardos.codecore.api.client.ui.widget;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.ToIntFunction;
-
-import net.minecraft.client.gui.FontRenderer;
 
 import com.mrleonardos.codecore.api.client.ui.render.Draw;
 import com.mrleonardos.codecore.api.client.ui.render.Painter;
@@ -17,8 +14,7 @@ import com.mrleonardos.codecore.api.client.ui.theme.Theme;
  * Меню само отодвигается от краёв экрана, поэтому его можно открывать хоть в правом нижнем углу ленты.
  *
  * <p>
- * Мерку и отрисовку подписи делает {@link Painter}. Перегрузки на {@code FontRenderer} доживают до
- * переезда потребителей.
+ * Мерку и отрисовку подписи делает {@link Painter}.
  */
 public final class ContextMenu {
 
@@ -35,16 +31,6 @@ public final class ContextMenu {
 
     /** Открыть меню в точке; список пунктов задаётся заново на каждое открытие. */
     public void open(Painter painter, List<Item> entries, int x, int y, int screenWidth, int screenHeight) {
-        openMeasured(painter::textWidth, entries, x, y, screenWidth, screenHeight);
-    }
-
-    /** Открыть меню в точке; список пунктов задаётся заново на каждое открытие. */
-    public void open(FontRenderer font, List<Item> entries, int x, int y, int screenWidth, int screenHeight) {
-        openMeasured(font::getStringWidth, entries, x, y, screenWidth, screenHeight);
-    }
-
-    private void openMeasured(ToIntFunction<String> measure, List<Item> entries, int x, int y, int screenWidth,
-        int screenHeight) {
         items.clear();
         items.addAll(entries);
         if (items.isEmpty()) {
@@ -54,7 +40,7 @@ public final class ContextMenu {
 
         width = MIN_WIDTH;
         for (Item item : items) {
-            width = Math.max(width, measure.applyAsInt(item.label()) + PADDING * 2);
+            width = Math.max(width, painter.textWidth(item.label()) + PADDING * 2);
         }
 
         left = Math.min(x, screenWidth - width - SCREEN_MARGIN);
@@ -72,14 +58,6 @@ public final class ContextMenu {
     }
 
     public void render(Painter painter, int mouseX, int mouseY) {
-        renderWith(painter::text, mouseX, mouseY);
-    }
-
-    public void render(FontRenderer font, int mouseX, int mouseY) {
-        renderWith((text, x, y, argb) -> font.drawString(text, x, y, argb), mouseX, mouseY);
-    }
-
-    private void renderWith(Label label, int mouseX, int mouseY) {
         if (!open) {
             return;
         }
@@ -97,7 +75,7 @@ public final class ContextMenu {
                 Draw.rect(left + 1, itemTop, left + width - 1, itemTop + ITEM_HEIGHT, Theme.ACCENT, 0.25F);
             }
             int color = item.enabled() ? (hovered ? Theme.TEXT : Theme.TEXT_MUTED) : Theme.TEXT_DISABLED;
-            label.draw(item.label(), left + PADDING, itemTop + 2, color | 0xFF000000);
+            painter.text(item.label(), left + PADDING, itemTop + 2, color | 0xFF000000);
         }
     }
 
@@ -138,11 +116,6 @@ public final class ContextMenu {
 
     private int height() {
         return items.size() * ITEM_HEIGHT + PADDING;
-    }
-
-    private interface Label {
-
-        void draw(String text, int x, int y, int argb);
     }
 
     /** Пункт меню: подпись, действие и признак доступности. */

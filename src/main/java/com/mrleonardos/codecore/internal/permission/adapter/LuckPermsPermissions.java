@@ -3,9 +3,6 @@ package com.mrleonardos.codecore.internal.permission.adapter;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-
 import com.mrleonardos.codecore.api.service.PermissionService;
 
 /**
@@ -76,14 +73,6 @@ final class LuckPermsPermissions implements PermissionService {
             return false;
         }
         return Reflected.flag(call(asBoolean, tristate));
-    }
-
-    @Override
-    public boolean has(ICommandSender sender, String node) {
-        if (!(sender instanceof EntityPlayerMP)) {
-            return true;
-        }
-        return has(((EntityPlayerMP) sender).getUniqueID(), node);
     }
 
     @Override

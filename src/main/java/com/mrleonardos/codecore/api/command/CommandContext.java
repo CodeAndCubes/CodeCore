@@ -1,8 +1,5 @@
 package com.mrleonardos.codecore.api.command;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-
 /**
  * Разобранная команда: кто вызвал и с какими аргументами.
  *
@@ -22,26 +19,9 @@ public interface CommandContext {
      * плодит расхождения.
      *
      * <p>
-     * Метод по умолчанию, а не обязательный, только на время переезда: у каждого мода линейки есть
-     * подставной контекст в тестах, и обязательный метод уронил бы их все разом. Со сносом старых
-     * подписей становится обязательным. Подставному контексту его стоит реализовать сразу, иначе он
-     * бросит на первом же вызове из перееехавшего кода.
+     * Единственная дорога к отправителю: типов игры в этом интерфейсе больше нет.
      */
-    default CommandSender caller() {
-        throw new UnsupportedOperationException(
-            getClass().getName() + " must override caller(): the command sender is asked for without game types");
-    }
-
-    /** Кто выполняет команду; уходит со сносом старых подписей, вместо него {@link #caller()}. */
-    ICommandSender sender();
-
-    /**
-     * Отправитель как игрок или {@code null}, если команду выполняет не игрок.
-     *
-     * <p>
-     * Уходит со сносом старых подписей, вместо него {@code caller().player()}.
-     */
-    EntityPlayerMP player();
+    CommandSender caller();
 
     /**
      * Значение аргумента по имени.

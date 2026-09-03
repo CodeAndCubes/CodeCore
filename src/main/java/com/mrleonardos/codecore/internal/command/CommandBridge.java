@@ -15,6 +15,7 @@ import com.mrleonardos.codecore.api.command.ArgumentSpec;
 import com.mrleonardos.codecore.api.command.CommandInputException;
 import com.mrleonardos.codecore.api.command.CommandMessages;
 import com.mrleonardos.codecore.api.command.CommandNode;
+import com.mrleonardos.codecore.api.command.CommandSender;
 import com.mrleonardos.codecore.api.service.PermissionService;
 import com.mrleonardos.codecore.platform.Senders;
 
@@ -51,11 +52,12 @@ public final class CommandBridge implements ICommand {
 
     @Override
     public boolean canCommandSenderUseCommand(ICommandSender sender) {
-        return allowed(sender, root);
+        return allowed(Senders.of(sender), root);
     }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
+        CommandSender caller = Senders.of(sender);
         CommandNode node = root;
         int cursor = 0;
 
@@ -64,7 +66,7 @@ public final class CommandBridge implements ICommand {
             if (child == null) {
                 break;
             }
-            if (!allowed(sender, child)) {
+            if (!allowed(caller, child)) {
                 throw new CommandException(CommandMessages.NO_PERMISSION);
             }
             node = child;
@@ -88,11 +90,12 @@ public final class CommandBridge implements ICommand {
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+        CommandSender caller = Senders.of(sender);
         CommandNode node = root;
         int cursor = 0;
         while (cursor < args.length - 1) {
             CommandNode child = childMatching(node, args[cursor]);
-            if (child == null || !allowed(sender, child)) {
+            if (child == null || !allowed(caller, child)) {
                 break;
             }
             node = child;
@@ -105,7 +108,7 @@ public final class CommandBridge implements ICommand {
 
         if (argumentIndex == 0) {
             for (CommandNode child : node.children()) {
-                if (allowed(sender, child) && startsWith(child.name(), partial)) {
+                if (allowed(caller, child) && startsWith(child.name(), partial)) {
                     options.add(child.name());
                 }
             }
@@ -113,31 +116,12 @@ public final class CommandBridge implements ICommand {
 
         List<ArgumentSpec> arguments = node.arguments();
         if (argumentIndex >= 0 && argumentIndex < arguments.size()) {
-            for (String option : suggestionsOf(arguments.get(argumentIndex), sender, partial)) {
-                if (!options.contains(option)) {
-                    options.add(option);
-                }
-            }
+            options.addAll(
+                arguments.get(argumentIndex)
+                    .type()
+                    .suggestions(caller, partial));
         }
         return options;
-    }
-
-    /**
-     * Пока у {@code ArgumentType.suggestions} живы обе подписи, спрашиваются обе.
-     *
-     * <p>
-     * Тип переопределяет ровно одну из них, вторая отвечает пустым списком по умолчанию. Спросить только
-     * новую значит погасить подсказки у тех, кто ещё не переехал, спросить только старую значит погасить
-     * их у тех, кто уже переехал, и в обоих случаях молча. Уходит вместе со старой подписью.
-     */
-    private static List<String> suggestionsOf(ArgumentSpec spec, ICommandSender sender, String partial) {
-        List<String> found = new ArrayList<>(
-            spec.type()
-                .suggestions(Senders.of(sender), partial));
-        found.addAll(
-            spec.type()
-                .suggestions(sender, partial));
-        return found;
     }
 
     @Override
@@ -207,7 +191,7 @@ public final class CommandBridge implements ICommand {
             .startsWith(partial.toLowerCase(Locale.ROOT));
     }
 
-    private static boolean allowed(ICommandSender sender, CommandNode node) {
+    private static boolean allowed(CommandSender sender, CommandNode node) {
         String permission = node.permissionNode();
         if (permission == null) {
             return true;

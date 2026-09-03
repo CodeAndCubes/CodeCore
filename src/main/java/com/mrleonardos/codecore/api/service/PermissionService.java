@@ -2,8 +2,6 @@ package com.mrleonardos.codecore.api.service;
 
 import java.util.UUID;
 
-import net.minecraft.command.ICommandSender;
-
 import com.mrleonardos.codecore.api.actor.PlayerRef;
 import com.mrleonardos.codecore.api.command.CommandSender;
 import com.mrleonardos.codecore.api.command.SenderKind;
@@ -23,18 +21,6 @@ public interface PermissionService {
 
     /** Есть ли у игрока право, в том числе у оффлайн-игрока. */
     boolean has(UUID player, String node);
-
-    /**
-     * Есть ли право у отправителя команды.
-     *
-     * <p>
-     * Консоль, RCON и командный блок получают всё: их ограничивают права доступа к серверу, а не мод.
-     *
-     * <p>
-     * Тип игры в подписи api доживает до переезда потребителей: тот же вопрос без него задаёт
-     * {@link #has(CommandSender, String)}.
-     */
-    boolean has(ICommandSender sender, String node);
 
     /**
      * Есть ли право у отправителя команды.

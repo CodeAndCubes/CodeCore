@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-
+import com.mrleonardos.codecore.api.CodeApi;
 import com.mrleonardos.codecore.api.actor.PlayerRef;
 import com.mrleonardos.codecore.api.util.Durations;
-import com.mrleonardos.codecore.api.util.Players;
 
 /** Готовые типы аргументов. */
 public final class ArgumentTypes {
@@ -57,48 +55,23 @@ public final class ArgumentTypes {
         };
     }
 
-    /**
-     * Игрок, который сейчас на сервере, ссылкой.
-     *
-     * <p>
-     * То же самое, что {@link #player()}, только без типа игры в значении аргумента. Со сносом старых
-     * подписей {@code player()} уходит, а этот остаётся, поэтому новый код пишется на него.
-     */
+    /** Игрок, который сейчас на сервере, ссылкой. */
     public static ArgumentType<PlayerRef> playerRef() {
         return new ArgumentType<PlayerRef>() {
 
             @Override
             public PlayerRef parse(String raw) {
-                EntityPlayerMP player = Players.online(raw);
-                if (player == null) {
-                    throw new CommandInputException(CommandMessages.PLAYER_NOT_FOUND, raw);
-                }
-                return PlayerRef.of(player.getUniqueID(), player.getCommandSenderName());
+                return CodeApi.players()
+                    .byName(raw)
+                    .orElseThrow(() -> new CommandInputException(CommandMessages.PLAYER_NOT_FOUND, raw));
             }
 
             @Override
             public List<String> suggestions(CommandSender sender, String partial) {
-                return startingWith(Players.onlineNames(), partial);
-            }
-        };
-    }
-
-    /** Игрок, который сейчас на сервере. */
-    public static ArgumentType<EntityPlayerMP> player() {
-        return new ArgumentType<EntityPlayerMP>() {
-
-            @Override
-            public EntityPlayerMP parse(String raw) {
-                EntityPlayerMP player = Players.online(raw);
-                if (player == null) {
-                    throw new CommandInputException(CommandMessages.PLAYER_NOT_FOUND, raw);
-                }
-                return player;
-            }
-
-            @Override
-            public List<String> suggestions(CommandSender sender, String partial) {
-                return startingWith(Players.onlineNames(), partial);
+                return startingWith(
+                    CodeApi.players()
+                        .onlineNames(),
+                    partial);
             }
         };
     }

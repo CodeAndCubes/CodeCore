@@ -57,7 +57,7 @@ final class PacketDispatcher extends SimpleChannelInboundHandler<Packet> {
         Side receiving = context.channel()
             .attr(NetworkRegistry.CHANNEL_SOURCE)
             .get();
-        if (receiving != expected.receivingSide()) {
+        if (receiving != receivingSideOf(expected)) {
             log.warn("Dropped {} received on {} while it is {} only", type.getName(), receiving, expected);
             return;
         }
@@ -71,6 +71,10 @@ final class PacketDispatcher extends SimpleChannelInboundHandler<Packet> {
     @Override
     public void exceptionCaught(ChannelHandlerContext context, Throwable cause) {
         log.error("Packet handling failed on channel " + channelName, cause);
+    }
+
+    private static Side receivingSideOf(PacketSide direction) {
+        return direction == PacketSide.CLIENT_BOUND ? Side.CLIENT : Side.SERVER;
     }
 
     private EntityPlayerMP senderOf(ChannelHandlerContext context) {

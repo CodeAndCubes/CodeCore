@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
-
 import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.api.service.PermissionService;
 
@@ -58,14 +55,6 @@ public final class GroupsPermissionService implements PermissionService {
             }
         }
         return false;
-    }
-
-    @Override
-    public boolean has(ICommandSender sender, String node) {
-        if (!(sender instanceof EntityPlayer)) {
-            return true;
-        }
-        return has(((EntityPlayer) sender).getUniqueID(), node);
     }
 
     @Override

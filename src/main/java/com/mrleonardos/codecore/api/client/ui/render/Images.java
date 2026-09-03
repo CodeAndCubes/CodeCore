@@ -1,11 +1,5 @@
 package com.mrleonardos.codecore.api.client.ui.render;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.util.ResourceLocation;
-
-import org.lwjgl.opengl.GL11;
-
 import com.mrleonardos.codecore.api.client.ClientApi;
 import com.mrleonardos.codecore.api.client.image.ImageHandle;
 
@@ -18,8 +12,8 @@ import com.mrleonardos.codecore.api.client.image.ImageHandle;
  * размера ложится в заданный прямоугольник целиком.
  *
  * <p>
- * Рисовать надо по ручке {@link ImageHandle}: неготовая ручка не рисует ничего, и заглушку показывает сам
- * вызывающий. Перегрузки на {@code ResourceLocation} доживают до переезда потребителей.
+ * Рисуется картинка по ручке {@link ImageHandle}: неготовая ручка не рисует ничего, и заглушку показывает
+ * сам вызывающий.
  */
 public final class Images {
 
@@ -48,39 +42,4 @@ public final class Images {
             .image(image, x, y, width, height, alpha);
     }
 
-    /** Нарисовать текстуру в квадрате со стороной {@code size}. */
-    public static void draw(ResourceLocation texture, int x, int y, int size) {
-        draw(texture, x, y, size, size, FULL);
-    }
-
-    /** Нарисовать текстуру в квадрате с заданной прозрачностью. */
-    public static void draw(ResourceLocation texture, int x, int y, int size, float alpha) {
-        draw(texture, x, y, size, size, alpha);
-    }
-
-    /** Нарисовать текстуру в прямоугольнике. */
-    public static void draw(ResourceLocation texture, int x, int y, int width, int height) {
-        draw(texture, x, y, width, height, FULL);
-    }
-
-    /** Нарисовать текстуру в прямоугольнике с заданной прозрачностью. */
-    public static void draw(ResourceLocation texture, int x, int y, int width, int height, float alpha) {
-        Minecraft.getMinecraft()
-            .getTextureManager()
-            .bindTexture(texture);
-
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glColor4f(FULL, FULL, FULL, alpha);
-
-        Tessellator tessellator = Tessellator.instance;
-        tessellator.startDrawingQuads();
-        tessellator.addVertexWithUV(x, y + height, 0, 0, FULL);
-        tessellator.addVertexWithUV(x + width, y + height, 0, FULL, FULL);
-        tessellator.addVertexWithUV(x + width, y, 0, FULL, 0);
-        tessellator.addVertexWithUV(x, y, 0, 0, 0);
-        tessellator.draw();
-
-        GL11.glColor4f(FULL, FULL, FULL, FULL);
-        GL11.glDisable(GL11.GL_BLEND);
-    }
 }
