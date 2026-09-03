@@ -1,8 +1,12 @@
 package com.mrleonardos.codecore.internal.net;
 
+import java.util.Optional;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import com.mrleonardos.codecore.api.actor.PlayerRef;
 import com.mrleonardos.codecore.api.net.PacketContext;
+import com.mrleonardos.codecore.platform.PlayerRefs;
 
 public final class PacketContextImpl implements PacketContext {
 
@@ -12,6 +16,11 @@ public final class PacketContextImpl implements PacketContext {
     PacketContextImpl(EntityPlayerMP sender, boolean onServer) {
         this.sender = sender;
         this.onServer = onServer;
+    }
+
+    @Override
+    public Optional<PlayerRef> player() {
+        return Optional.ofNullable(PlayerRefs.of(sender));
     }
 
     @Override

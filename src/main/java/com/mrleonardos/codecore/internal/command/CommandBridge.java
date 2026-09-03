@@ -12,9 +12,11 @@ import net.minecraft.command.ICommandSender;
 
 import com.mrleonardos.codecore.api.CodeApi;
 import com.mrleonardos.codecore.api.command.ArgumentSpec;
+import com.mrleonardos.codecore.api.command.CommandInputException;
 import com.mrleonardos.codecore.api.command.CommandMessages;
 import com.mrleonardos.codecore.api.command.CommandNode;
 import com.mrleonardos.codecore.api.service.PermissionService;
+import com.mrleonardos.codecore.platform.Senders;
 
 /**
  * Показывает дерево команд ядра как обычную команду Minecraft.
@@ -75,9 +77,13 @@ public final class CommandBridge implements ICommand {
                     .isEmpty() ? usageOf(node) : CommandMessages.UNKNOWN_SUBCOMMAND);
         }
 
-        Map<String, Object> values = parseArguments(node, args, cursor);
-        node.action()
-            .run(new CommandContextImpl(sender, values));
+        try {
+            Map<String, Object> values = parseArguments(node, args, cursor);
+            node.action()
+                .run(new CommandContextImpl(sender, values));
+        } catch (CommandInputException failure) {
+            throw new CommandException(failure.translationKey(), failure.arguments());
+        }
     }
 
     @Override
@@ -107,12 +113,31 @@ public final class CommandBridge implements ICommand {
 
         List<ArgumentSpec> arguments = node.arguments();
         if (argumentIndex >= 0 && argumentIndex < arguments.size()) {
-            options.addAll(
-                arguments.get(argumentIndex)
-                    .type()
-                    .suggestions(sender, partial));
+            for (String option : suggestionsOf(arguments.get(argumentIndex), sender, partial)) {
+                if (!options.contains(option)) {
+                    options.add(option);
+                }
+            }
         }
         return options;
+    }
+
+    /**
+     * Пока у {@code ArgumentType.suggestions} живы обе подписи, спрашиваются обе.
+     *
+     * <p>
+     * Тип переопределяет ровно одну из них, вторая отвечает пустым списком по умолчанию. Спросить только
+     * новую значит погасить подсказки у тех, кто ещё не переехал, спросить только старую значит погасить
+     * их у тех, кто уже переехал, и в обоих случаях молча. Уходит вместе со старой подписью.
+     */
+    private static List<String> suggestionsOf(ArgumentSpec spec, ICommandSender sender, String partial) {
+        List<String> found = new ArrayList<>(
+            spec.type()
+                .suggestions(Senders.of(sender), partial));
+        found.addAll(
+            spec.type()
+                .suggestions(sender, partial));
+        return found;
     }
 
     @Override

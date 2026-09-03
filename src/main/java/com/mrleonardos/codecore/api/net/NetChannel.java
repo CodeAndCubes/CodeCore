@@ -2,6 +2,8 @@ package com.mrleonardos.codecore.api.net;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import com.mrleonardos.codecore.api.actor.PlayerRef;
+
 /**
  * Сетевой канал одного мода.
  *
@@ -18,11 +20,20 @@ public interface NetChannel {
      */
     <T extends Packet> void register(Class<T> type, PacketSide side);
 
-    /** Отправить одному игроку. */
-    void toPlayer(Packet packet, EntityPlayerMP player);
+    /**
+     * Отправить одному игроку.
+     *
+     * <p>
+     * Ссылка на игрока, которого уже нет на сервере, отбрасывается молча: адресат мог выйти между сбором
+     * списка и отправкой.
+     */
+    void toPlayer(Packet packet, PlayerRef player);
 
-    /** Отправить перечисленным игрокам. */
-    void toPlayers(Packet packet, Iterable<EntityPlayerMP> players);
+    /** Отправить перечисленным игрокам; ушедшие с сервера пропускаются. */
+    void toPlayers(Packet packet, Iterable<PlayerRef> players);
+
+    /** Отправить одному игроку; уходит со сносом старых подписей. */
+    void toPlayer(Packet packet, EntityPlayerMP player);
 
     /** Отправить всем на сервере. */
     void toAll(Packet packet);

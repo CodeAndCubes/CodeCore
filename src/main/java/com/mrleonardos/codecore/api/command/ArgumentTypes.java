@@ -4,10 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import com.mrleonardos.codecore.api.actor.PlayerRef;
 import com.mrleonardos.codecore.api.util.Durations;
 import com.mrleonardos.codecore.api.util.Players;
 
@@ -49,12 +48,38 @@ public final class ArgumentTypes {
             try {
                 value = Integer.parseInt(raw);
             } catch (NumberFormatException notANumber) {
-                throw new CommandException(CommandMessages.NOT_A_NUMBER, raw);
+                throw new CommandInputException(CommandMessages.NOT_A_NUMBER, raw);
             }
             if (value < min || value > max) {
-                throw new CommandException(CommandMessages.OUT_OF_RANGE, raw, min, max);
+                throw new CommandInputException(CommandMessages.OUT_OF_RANGE, raw, min, max);
             }
             return value;
+        };
+    }
+
+    /**
+     * Игрок, который сейчас на сервере, ссылкой.
+     *
+     * <p>
+     * То же самое, что {@link #player()}, только без типа игры в значении аргумента. Со сносом старых
+     * подписей {@code player()} уходит, а этот остаётся, поэтому новый код пишется на него.
+     */
+    public static ArgumentType<PlayerRef> playerRef() {
+        return new ArgumentType<PlayerRef>() {
+
+            @Override
+            public PlayerRef parse(String raw) {
+                EntityPlayerMP player = Players.online(raw);
+                if (player == null) {
+                    throw new CommandInputException(CommandMessages.PLAYER_NOT_FOUND, raw);
+                }
+                return PlayerRef.of(player.getUniqueID(), player.getCommandSenderName());
+            }
+
+            @Override
+            public List<String> suggestions(CommandSender sender, String partial) {
+                return startingWith(Players.onlineNames(), partial);
+            }
         };
     }
 
@@ -66,13 +91,13 @@ public final class ArgumentTypes {
             public EntityPlayerMP parse(String raw) {
                 EntityPlayerMP player = Players.online(raw);
                 if (player == null) {
-                    throw new CommandException(CommandMessages.PLAYER_NOT_FOUND, raw);
+                    throw new CommandInputException(CommandMessages.PLAYER_NOT_FOUND, raw);
                 }
                 return player;
             }
 
             @Override
-            public List<String> suggestions(ICommandSender sender, String partial) {
+            public List<String> suggestions(CommandSender sender, String partial) {
                 return startingWith(Players.onlineNames(), partial);
             }
         };
@@ -83,7 +108,7 @@ public final class ArgumentTypes {
         return raw -> {
             int seconds = Durations.toSeconds(raw);
             if (seconds < 0) {
-                throw new CommandException(CommandMessages.INVALID_DURATION, raw);
+                throw new CommandInputException(CommandMessages.INVALID_DURATION, raw);
             }
             return seconds;
         };
@@ -101,11 +126,11 @@ public final class ArgumentTypes {
                         return value;
                     }
                 }
-                throw new CommandException(CommandMessages.UNKNOWN_VALUE, raw);
+                throw new CommandInputException(CommandMessages.UNKNOWN_VALUE, raw);
             }
 
             @Override
-            public List<String> suggestions(ICommandSender sender, String partial) {
+            public List<String> suggestions(CommandSender sender, String partial) {
                 List<String> names = new ArrayList<>();
                 for (E value : type.getEnumConstants()) {
                     names.add(

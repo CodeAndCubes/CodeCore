@@ -9,6 +9,8 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.mrleonardos.codecore.api.command.CommandContext;
+import com.mrleonardos.codecore.api.command.CommandSender;
+import com.mrleonardos.codecore.platform.Senders;
 
 public final class CommandContextImpl implements CommandContext {
 
@@ -23,6 +25,11 @@ public final class CommandContextImpl implements CommandContext {
     @Override
     public ICommandSender sender() {
         return sender;
+    }
+
+    @Override
+    public CommandSender caller() {
+        return Senders.of(sender);
     }
 
     @Override

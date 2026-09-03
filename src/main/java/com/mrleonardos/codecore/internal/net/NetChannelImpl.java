@@ -8,10 +8,12 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import org.apache.logging.log4j.Logger;
 
+import com.mrleonardos.codecore.api.actor.PlayerRef;
 import com.mrleonardos.codecore.api.net.NetChannel;
 import com.mrleonardos.codecore.api.net.Packet;
 import com.mrleonardos.codecore.api.net.PacketSide;
 import com.mrleonardos.codecore.internal.schedule.SchedulerImpl;
+import com.mrleonardos.codecore.platform.PlayerRefs;
 
 import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
@@ -72,8 +74,16 @@ public final class NetChannelImpl implements NetChannel {
     }
 
     @Override
-    public void toPlayers(Packet packet, Iterable<EntityPlayerMP> players) {
-        for (EntityPlayerMP player : players) {
+    public void toPlayer(Packet packet, PlayerRef player) {
+        EntityPlayerMP online = PlayerRefs.online(player);
+        if (online != null) {
+            toPlayer(packet, online);
+        }
+    }
+
+    @Override
+    public void toPlayers(Packet packet, Iterable<PlayerRef> players) {
+        for (PlayerRef player : players) {
             toPlayer(packet, player);
         }
     }

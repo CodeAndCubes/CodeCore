@@ -1,12 +1,11 @@
 package com.mrleonardos.codecore.internal.net;
 
 import com.mrleonardos.codecore.api.avatar.AvatarConfig;
+import com.mrleonardos.codecore.api.net.CodeBuffer;
 import com.mrleonardos.codecore.api.net.Codec;
 import com.mrleonardos.codecore.api.net.Packet;
 import com.mrleonardos.codecore.api.net.PacketContext;
 import com.mrleonardos.codecore.internal.CoreBridge;
-
-import io.netty.buffer.ByteBuf;
 
 /**
  * Сервер сообщает клиенту, откуда брать аватары.
@@ -26,7 +25,7 @@ public final class AvatarConfigPacket extends Packet {
     }
 
     @Override
-    public void write(ByteBuf buffer) {
+    public void write(CodeBuffer buffer) {
         Codec.writeString(buffer, config.provider());
         Codec.writeString(buffer, config.url());
         Codec.writeString(buffer, config.jsonPath());
@@ -35,7 +34,7 @@ public final class AvatarConfigPacket extends Packet {
     }
 
     @Override
-    public void read(ByteBuf buffer) {
+    public void read(CodeBuffer buffer) {
         String provider = Codec.readString(buffer);
         String url = Codec.readString(buffer);
         String jsonPath = Codec.readString(buffer);
