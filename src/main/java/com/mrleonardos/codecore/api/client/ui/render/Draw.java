@@ -1,18 +1,15 @@
 package com.mrleonardos.codecore.api.client.ui.render;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
-
-import org.lwjgl.opengl.GL11;
+import com.mrleonardos.codecore.api.client.ClientApi;
 
 /**
  * Примитивы рисования интерфейса.
  *
  * <p>
- * Здесь же живёт обрезка по прямоугольнику: {@code glScissor} работает в пикселях окна, а интерфейс
- * рисуется в масштабированных координатах. Из-за путаницы между ними на нестандартном масштабе
- * интерфейс уезжает.
+ * Подписи здесь целиком на {@code int}, {@code float} и {@code String}, а работу делает {@link Painter}:
+ * это он знает про {@code Gui.drawRect}, {@code glScissor} и масштаб интерфейса. Обрезка по прямоугольнику
+ * живёт там же не случайно: {@code glScissor} работает в пикселях окна, а интерфейс рисуется в
+ * масштабированных координатах, и из-за путаницы между ними на нестандартном масштабе интерфейс уезжает.
  */
 public final class Draw {
 
@@ -25,7 +22,8 @@ public final class Draw {
 
     /** Заливка прямоугольника цветом с альфой. */
     public static void rect(int left, int top, int right, int bottom, int argb) {
-        Gui.drawRect(left, top, right, bottom, argb);
+        ClientApi.painter()
+            .rect(left, top, right, bottom, argb);
     }
 
     /** Заливка со сплошным цветом и отдельной прозрачностью от нуля до единицы. */
@@ -97,22 +95,14 @@ public final class Draw {
      * Обязательно закрывать вызовом {@link #endClip()}.
      */
     public static void clip(int left, int top, int right, int bottom) {
-        Minecraft minecraft = Minecraft.getMinecraft();
-        ScaledResolution resolution = new ScaledResolution(minecraft, minecraft.displayWidth, minecraft.displayHeight);
-        int scale = resolution.getScaleFactor();
-        int height = bottom - top;
-
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glScissor(
-            left * scale,
-            minecraft.displayHeight - (top + height) * scale,
-            Math.max(0, (right - left) * scale),
-            Math.max(0, height * scale));
+        ClientApi.painter()
+            .clip(left, top, right, bottom);
     }
 
     /** Снять ограничение области рисования. */
     public static void endClip() {
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        ClientApi.painter()
+            .endClip();
     }
 
     /** Разобрать цвет вида {@code #4CAF50}; при непонятной записи вернуть запасной. */

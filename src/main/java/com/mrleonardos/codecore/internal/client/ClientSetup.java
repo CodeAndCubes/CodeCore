@@ -11,6 +11,7 @@ import com.mrleonardos.codecore.api.client.ClientRuntime;
 import com.mrleonardos.codecore.api.client.avatar.AvatarService;
 import com.mrleonardos.codecore.api.client.image.ImageLimits;
 import com.mrleonardos.codecore.api.client.image.ImageService;
+import com.mrleonardos.codecore.api.client.ui.render.Painter;
 import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.config.ConfigScope;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
@@ -22,6 +23,7 @@ import com.mrleonardos.codecore.internal.client.avatar.AvatarServiceImpl;
 import com.mrleonardos.codecore.internal.client.avatar.ClientAvatarSettings;
 import com.mrleonardos.codecore.internal.client.image.ImageBudget;
 import com.mrleonardos.codecore.internal.client.image.ImageServiceImpl;
+import com.mrleonardos.codecore.internal.client.ui.GlPainter;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 
@@ -41,6 +43,7 @@ public final class ClientSetup implements SideSetup, ClientRuntime, AvatarConfig
     private static final String CACHE_DIRECTORY = "cache/images";
 
     private final ClientWorkers workers = new ClientWorkers();
+    private final GlPainter painter = new GlPainter();
 
     private ImageServiceImpl imageService;
     private AvatarServiceImpl avatarService;
@@ -98,5 +101,10 @@ public final class ClientSetup implements SideSetup, ClientRuntime, AvatarConfig
     @Override
     public AvatarService avatars() {
         return avatarService;
+    }
+
+    @Override
+    public Painter painter() {
+        return painter;
     }
 }
