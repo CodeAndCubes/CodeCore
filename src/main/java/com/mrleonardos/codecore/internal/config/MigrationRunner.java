@@ -41,7 +41,7 @@ public final class MigrationRunner {
                 fileName,
                 current,
                 targetVersion);
-            return MigrationOutcome.UNCHANGED;
+            return MigrationOutcome.AHEAD;
         }
 
         Map<Integer, Migration> byVersion = index(migrations, fileName, log);

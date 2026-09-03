@@ -60,7 +60,10 @@ class MigrationRunnerTest {
         data.set(ConfigKeys.SCHEMA_VERSION, 9L);
         data.set("fromTheFuture", true);
 
-        assertEquals(MigrationOutcome.UNCHANGED, MigrationRunner.run(data, chain(), 3, FILE, LOG));
+        assertEquals(
+            MigrationOutcome.AHEAD,
+            MigrationRunner.run(data, chain(), 3, FILE, LOG),
+            "файл новее нашего отличается от файла текущей версии: его не дополняют");
         assertEquals(9, data.integer(ConfigKeys.SCHEMA_VERSION, 0), "чужие настройки должны остаться целыми");
     }
 

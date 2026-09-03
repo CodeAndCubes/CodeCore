@@ -229,6 +229,105 @@ class ConfigFileImplTest {
         assertTrue(Files.isRegularFile(json.resolveSibling("core-settings.json" + ConfigKeys.BROKEN_SUFFIX)));
     }
 
+    @Test
+    @DisplayName("новое поле мода доезжает в уже существующий файл")
+    void newFieldReachesAnExistingFile() throws IOException {
+        write("schemaVersion = 1\ngreeting = \"здорово\"\n");
+
+        ConfigFile<Settings> file = open(spec().build());
+
+        assertEquals("здорово", file.get().greeting, "прежнее значение остаётся");
+        assertTrue(text().contains("tiles = 4"), text());
+        assertTrue(text().contains("Как здороваемся"), text());
+    }
+
+    @Test
+    @DisplayName("дополненный файл назван в логе, чтобы админ узнал о прибавке")
+    void toppingUpIsAnnounced() throws IOException {
+        write("schemaVersion = 1\ngreeting = \"здорово\"\n");
+
+        LogCapture capture = LogCapture.attach(LOG);
+        try {
+            open(spec().build());
+
+            assertTrue(
+                capture.text()
+                    .contains("topped up"),
+                capture.text());
+        } finally {
+            capture.detach();
+        }
+    }
+
+    @Test
+    @DisplayName("файл, в котором всё на месте, второй запуск не трогает")
+    void completeFileIsNotRewritten() throws IOException {
+        open(spec().build());
+        String written = text();
+
+        LogCapture capture = LogCapture.attach(LOG);
+        try {
+            open(spec().build());
+
+            assertEquals(written, text(), "повторное открытие ничего не двигает");
+            assertFalse(
+                capture.text()
+                    .contains("topped up"),
+                capture.text());
+        } finally {
+            capture.detach();
+        }
+    }
+
+    @Test
+    @DisplayName("удалённый человеком ключ возвращается, а изменённое им значение остаётся")
+    void deletedKeyComesBackAndChangedValueSurvives() throws IOException {
+        write("schemaVersion = 1\ngreeting = \"моё\"\n");
+
+        Settings settings = open(spec().build()).get();
+
+        assertEquals("моё", settings.greeting, "изменённое человеком значение не перетёрто");
+        assertEquals(4, settings.tiles, "удалённый ключ работает на заводском значении");
+        assertTrue(text().contains("greeting = \"моё\""), text());
+        assertTrue(text().contains("tiles = 4"), text());
+    }
+
+    @Test
+    @DisplayName("файл из будущей версии не дополняется, хотя поля мода в нём нет")
+    void newerFileIsNotToppedUp() throws IOException {
+        String original = "schemaVersion = 9\ngreeting = \"из будущего\"\n";
+        write(original);
+
+        open(spec().build());
+
+        assertEquals(original, text(), "мод новее нашего сам знает, что писать в свой файл");
+    }
+
+    @Test
+    @DisplayName("битый файл уезжает в карантин, а не дополняется")
+    void brokenFileIsNotToppedUp() throws IOException {
+        write("[unclosed\ngreeting = \"здорово\"\n");
+
+        open(spec().build());
+
+        assertEquals("[unclosed\ngreeting = \"здорово\"\n", read(broken()), "битое отложено как было");
+        assertTrue(text().contains("greeting = \"привет\""), text());
+    }
+
+    @Test
+    @DisplayName("оборванная цепочка миграций не дополняется: шаги ждут своих полей")
+    void incompleteMigrationIsNotToppedUp() throws IOException {
+        String original = "schemaVersion = 1\noldGreeting = \"здорово\"\nawaitedByStepFour = \"важное\"\n";
+        write(original);
+
+        open(
+            spec().schemaVersion(5)
+                .migration(renameGreeting())
+                .build());
+
+        assertEquals(original, text(), "файл с оборванной цепочкой не трогают вовсе");
+    }
+
     private ConfigSpec.Builder<Settings> spec() {
         return ConfigSpec.of(MODID, NAME, Settings.class)
             .role(ConfigRoles.CORE)

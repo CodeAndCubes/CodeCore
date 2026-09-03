@@ -1,6 +1,7 @@
 package com.mrleonardos.codecore.internal.config;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -110,7 +111,46 @@ public final class ConfigFileImpl<T> implements ConfigFile<T> {
         }
         if (outcome == MigrationOutcome.MIGRATED) {
             save();
+            return;
         }
+        if (outcome == MigrationOutcome.UNCHANGED) {
+            topUp();
+        }
+    }
+
+    /**
+     * Дописать в файл настройки, которых в нём ещё нет.
+     *
+     * <p>
+     * Обновлённый мод приносит новые поля, а файл на диске остаётся прежним: он читается и, пока никто
+     * ничего не менял, не переписывается. Админ в итоге не видит новых настроек вовсе и не может их
+     * поменять, пока не удалит файл целиком, а работают они на заводских значениях. Поэтому после чтения
+     * модель накладывается на прочитанное, и файл сохраняется, только если от этого он изменился.
+     *
+     * <p>
+     * Сравниваются две отрисовки одного документа, а не отрисовка с текстом на диске: иначе любая мелочь
+     * форматирования переписывала бы файл на каждом запуске. Значения человека при этом не трогаются, они
+     * уже разобраны в модель; возвращается только то, чего в файле нет.
+     */
+    private void topUp() {
+        String before = render();
+        document.store(value, spec.type(), spec.schemaVersion());
+        String after = render();
+        if (before.equals(after)) {
+            return;
+        }
+        ConfigWriting.atomically(path, document::writeTo, describe(), log);
+        log.info("Config {} was topped up with settings this version added, existing values were kept", describe());
+    }
+
+    private String render() {
+        StringWriter writer = new StringWriter();
+        try {
+            document.writeTo(writer);
+        } catch (IOException failure) {
+            throw new IllegalStateException("Failed to render config " + describe() + " in memory", failure);
+        }
+        return writer.toString();
     }
 
     /** Забыть содержимое: используется, когда выгружается мир. */
