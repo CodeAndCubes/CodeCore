@@ -1,7 +1,8 @@
-package com.mrleonardos.codecore.internal.command;
+package com.mrleonardos.codecore.platform;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,6 +16,8 @@ import net.minecraft.world.World;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.mrleonardos.codecore.api.command.CommandSender;
+import com.mrleonardos.codecore.api.command.FakeSender;
 import com.mrleonardos.codecore.api.command.SenderKind;
 import com.mrleonardos.codecore.api.command.SenderPosition;
 
@@ -28,12 +31,12 @@ import io.netty.buffer.ByteBuf;
  * Игрока в этом наборе нет намеренно: {@code EntityPlayerMP} тянет за собой мир и менеджер игроков, и его
  * ветку проверяет живой запуск.
  */
-class SenderImplTest {
+class SendersTest {
 
     @Test
     @DisplayName("обычный отправитель без мира это консоль")
     void plainSenderIsTheConsole() {
-        SenderImpl sender = new SenderImpl(new Console());
+        CommandSender sender = Senders.of(new Console());
 
         assertEquals(SenderKind.CONSOLE, sender.kind());
         assertEquals("Server", sender.name());
@@ -49,7 +52,7 @@ class SenderImplTest {
     @Test
     @DisplayName("RCON отличается от консоли")
     void rconIsItsOwnKind() {
-        SenderImpl sender = new SenderImpl(RConConsoleSource.instance);
+        CommandSender sender = Senders.of(RConConsoleSource.instance);
 
         assertEquals(SenderKind.RCON, sender.kind());
         assertFalse(
@@ -60,7 +63,7 @@ class SenderImplTest {
     @Test
     @DisplayName("командный блок отдаёт свои координаты")
     void commandBlockReportsItsPosition() {
-        SenderImpl sender = new SenderImpl(new Block(new ChunkCoordinates(100, 64, -30)));
+        CommandSender sender = Senders.of(new Block(new ChunkCoordinates(100, 64, -30)));
 
         assertEquals(SenderKind.COMMAND_BLOCK, sender.kind());
         assertTrue(
@@ -79,7 +82,14 @@ class SenderImplTest {
     void platformSenderStaysReachable() {
         Console console = new Console();
 
-        assertSame(console, new SenderImpl(console).platform());
+        assertSame(console, Senders.platform(Senders.of(console)));
+    }
+
+    @Test
+    @DisplayName("у отправителя, сделанного не здесь, игрового двойника нет")
+    void foreignSenderHasNoPlatformTwin() {
+        assertNull(Senders.platform(FakeSender.console()));
+        assertNull(Senders.of(null));
     }
 
     private static class Console implements ICommandSender {

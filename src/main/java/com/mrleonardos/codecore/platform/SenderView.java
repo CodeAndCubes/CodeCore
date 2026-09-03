@@ -1,4 +1,4 @@
-package com.mrleonardos.codecore.internal.command;
+package com.mrleonardos.codecore.platform;
 
 import java.util.Optional;
 
@@ -16,12 +16,12 @@ import com.mrleonardos.codecore.api.command.CommandSender;
 import com.mrleonardos.codecore.api.command.SenderKind;
 import com.mrleonardos.codecore.api.command.SenderPosition;
 
-public final class SenderImpl implements CommandSender {
+final class SenderView implements CommandSender {
 
     private final ICommandSender sender;
     private final SenderKind kind;
 
-    public SenderImpl(ICommandSender sender) {
+    SenderView(ICommandSender sender) {
         this.sender = sender;
         this.kind = kindOf(sender);
     }
@@ -36,8 +36,7 @@ public final class SenderImpl implements CommandSender {
         if (kind != SenderKind.PLAYER) {
             return Optional.empty();
         }
-        EntityPlayerMP player = (EntityPlayerMP) sender;
-        return Optional.of(PlayerRef.of(player.getUniqueID(), player.getCommandSenderName()));
+        return Optional.of(PlayerRefs.of((EntityPlayerMP) sender));
     }
 
     @Override
@@ -70,7 +69,7 @@ public final class SenderImpl implements CommandSender {
         sender.addChatMessage(message);
     }
 
-    public ICommandSender platform() {
+    ICommandSender platform() {
         return sender;
     }
 
