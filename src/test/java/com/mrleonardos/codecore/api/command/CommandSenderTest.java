@@ -91,14 +91,20 @@ class CommandSenderTest {
         assertEquals(Arrays.asList(CommandMessages.USAGE, "error " + CommandMessages.NO_PERMISSION), sender.said);
     }
 
-    /** Ровно то, что делает {@code SenderSubjects.actorOf} у соседних модов. */
+    /**
+     * Ровно то, что делает {@code SenderSubjects.actorOf} у соседних модов.
+     *
+     * <p>
+     * Координаты берутся из {@code x()}, {@code y()} и {@code z()}, а не из {@code toString()}: подпись
+     * уходит в журнал на диск и обязана пережить любую правку отладочной записи.
+     */
     private static String actorOf(CommandSender sender) {
         switch (sender.kind()) {
             case PLAYER:
                 return sender.name();
             case COMMAND_BLOCK:
                 return "commandblock@" + sender.position()
-                    .map(SenderPosition::toString)
+                    .map(at -> at.x() + "," + at.y() + "," + at.z())
                     .orElse("?");
             case RCON:
                 return "rcon";

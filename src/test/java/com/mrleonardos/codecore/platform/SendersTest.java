@@ -74,7 +74,6 @@ class SendersTest {
         assertEquals(100, position.x());
         assertEquals(64, position.y());
         assertEquals(-30, position.z());
-        assertEquals("100,64,-30", position.toString());
     }
 
     @Test
