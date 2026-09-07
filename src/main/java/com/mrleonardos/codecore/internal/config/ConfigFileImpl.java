@@ -80,6 +80,10 @@ public final class ConfigFileImpl<T> implements ConfigFile<T> {
     void load() {
         path = paths.resolve(spec);
         if (!Files.isRegularFile(path)) {
+            if (spec.foreign()) {
+                unloadForeign();
+                return;
+            }
             createFromDefaults();
             log.info("Created config {} at {}", describe(), path);
             return;
@@ -87,6 +91,11 @@ public final class ConfigFileImpl<T> implements ConfigFile<T> {
 
         ConfigDocument read = read();
         if (read == null) {
+            if (spec.foreign()) {
+                unloadForeign();
+                ConfigHints.afterBadRead(spec.format(), log);
+                return;
+            }
             quarantine();
             ConfigHints.afterBadRead(spec.format(), log);
             createFromDefaults();
@@ -97,6 +106,10 @@ public final class ConfigFileImpl<T> implements ConfigFile<T> {
             .run(read.data(), spec.migrations(), spec.schemaVersion(), describe(), log);
         T parsed = parse(read);
         if (parsed == null) {
+            if (spec.foreign()) {
+                unloadForeign();
+                return;
+            }
             quarantine();
             createFromDefaults();
             return;
@@ -105,6 +118,9 @@ public final class ConfigFileImpl<T> implements ConfigFile<T> {
         document = read;
         value = parsed;
         reportUnknownKeys();
+        if (spec.foreign()) {
+            return;
+        }
         if (outcome == MigrationOutcome.INCOMPLETE) {
             keepCopy();
             return;
@@ -151,6 +167,15 @@ public final class ConfigFileImpl<T> implements ConfigFile<T> {
             throw new IllegalStateException("Failed to render config " + describe() + " in memory", failure);
         }
         return writer.toString();
+    }
+
+    /**
+     * Чужой файл прочитать не вышло. Своего мы бы завели заново, а этот трогать нечем: пусть лежит
+     * как есть, а спросивший увидит по {@link #loaded()}, что значений нет.
+     */
+    private void unloadForeign() {
+        value = null;
+        document = null;
     }
 
     /** Забыть содержимое: используется, когда выгружается мир. */

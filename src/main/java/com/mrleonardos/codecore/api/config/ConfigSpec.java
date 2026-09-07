@@ -45,6 +45,7 @@ public final class ConfigSpec<T> {
     private final List<Migration> migrations;
     private final Supplier<T> defaults;
     private final Consumer<T> validator;
+    private final boolean foreign;
 
     private ConfigSpec(Builder<T> builder) {
         if (builder.role == null) {
@@ -61,6 +62,7 @@ public final class ConfigSpec<T> {
         this.migrations = Collections.unmodifiableList(new ArrayList<>(builder.migrations));
         this.defaults = builder.defaults != null ? builder.defaults : ConfigDefaults.reflective(builder.type);
         this.validator = builder.validator != null ? builder.validator : value -> {};
+        this.foreign = builder.foreign;
     }
 
     /**
@@ -126,6 +128,11 @@ public final class ConfigSpec<T> {
         return validator;
     }
 
+    /** Принадлежит ли файл другому моду: тогда ядро само в него не пишет. */
+    public boolean foreign() {
+        return foreign;
+    }
+
     public static final class Builder<T> {
 
         private final String modid;
@@ -138,6 +145,7 @@ public final class ConfigSpec<T> {
         private int schemaVersion = 1;
         private Supplier<T> defaults;
         private Consumer<T> validator;
+        private boolean foreign;
 
         private Builder(String modid, String name, Class<T> type) {
             this.modid = modid;
@@ -194,6 +202,20 @@ public final class ConfigSpec<T> {
          */
         public Builder<T> validator(Consumer<T> value) {
             this.validator = value;
+            return this;
+        }
+
+        /**
+         * Файл принадлежит другому моду, мы его читаем.
+         *
+         * <p>
+         * Ядро тогда не пишет в него само: не создаёт отсутствующий, не дописывает свои поля, не
+         * отодвигает нечитаемый в {@code .broken}. Нечитаемый файл остаётся на месте, а
+         * {@link ConfigFile#loaded()} отвечает «нет». Запись остаётся только явная, через
+         * {@link ConfigFile#save()}: так импорт помечает чужой файл перенесённым.
+         */
+        public Builder<T> foreign() {
+            this.foreign = true;
             return this;
         }
 

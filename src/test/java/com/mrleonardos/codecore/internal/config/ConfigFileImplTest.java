@@ -385,6 +385,60 @@ class ConfigFileImplTest {
         assertFalse(json.contains("#"), json);
     }
 
+    @Test
+    @DisplayName("чужой файл читается как есть, ядро в него ничего не дописывает")
+    void aForeignFileIsReadWithoutBeingWritten() throws IOException {
+        write("greeting = \"чужое\"\n");
+        String before = text();
+
+        ConfigFile<Settings> file = open(
+            spec().foreign()
+                .build());
+
+        assertEquals("чужое", file.get().greeting);
+        assertEquals(before, text(), "мод читает файл соседа, а не правит его");
+    }
+
+    @Test
+    @DisplayName("отсутствующий чужой файл не создаётся")
+    void aMissingForeignFileIsNotCreated() {
+        ConfigFile<Settings> file = open(
+            spec().foreign()
+                .build());
+
+        assertFalse(file.loaded());
+        assertFalse(Files.isRegularFile(path()), "заводить чужой файл за соседа не наше дело");
+    }
+
+    @Test
+    @DisplayName("нечитаемый чужой файл остаётся на месте")
+    void anUnreadableForeignFileStaysWhereItIs() throws IOException {
+        write("greeting = \n");
+        String before = text();
+
+        ConfigFile<Settings> file = open(
+            spec().foreign()
+                .build());
+
+        assertFalse(file.loaded());
+        assertEquals(before, text());
+        assertFalse(Files.exists(broken()), "чужой файл не отодвигается в .broken");
+    }
+
+    @Test
+    @DisplayName("чужой файл пишется явным сохранением")
+    void aForeignFileIsWrittenOnlyWhenAsked() throws IOException {
+        write("greeting = \"чужое\"\n");
+        ConfigFile<Settings> file = open(
+            spec().foreign()
+                .build());
+
+        file.get().greeting = "наше";
+        file.save();
+
+        assertTrue(text().contains("greeting = \"наше\""), text());
+    }
+
     private static int countOf(String text, String piece) {
         int found = 0;
         int at = text.indexOf(piece);
