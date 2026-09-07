@@ -92,6 +92,22 @@ class ConfigOrderTest {
             "строка стоит над staff, а не над чужой секцией");
     }
 
+    @Test
+    @DisplayName("метка порядка байтов в начале файла не роняет разбор")
+    void aByteOrderMarkDoesNotBreakTheFile() throws IOException {
+        ConfigFile<Settings> file = open();
+        file.get().greeting = "здравствуйте";
+        file.save();
+        write("\uFEFF" + text());
+
+        file.reload();
+
+        assertEquals(
+            "здравствуйте",
+            file.get().greeting,
+            "«Блокнот» Windows дописывает метку при каждом сохранении, и файл уезжал в .broken целиком");
+    }
+
     private ConfigFile<Settings> open() {
         return new ConfigServiceImpl(new ConfigPaths(configDirectory), LOG).open(
             ConfigSpec.of(MODID, NAME, Settings.class)

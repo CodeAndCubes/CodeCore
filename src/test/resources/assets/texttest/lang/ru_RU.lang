@@ -1,0 +1,5 @@
+# Файл перевода для проверки чтения, к настоящему моду отношения не имеет.
+texttest.message.plain=Подставлять нечего
+texttest.message.one=Дом %s поставлен
+texttest.message.count=Домов: %d из %d
+texttest.message.order=%2$s принадлежит %1$s

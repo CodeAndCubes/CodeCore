@@ -6,7 +6,6 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandBlockLogic;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.rcon.RConConsoleSource;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -58,12 +57,12 @@ final class SenderView implements CommandSender {
 
     @Override
     public void reply(String translationKey, Object... arguments) {
-        sender.addChatMessage(new ChatComponentTranslation(translationKey, arguments));
+        sender.addChatMessage(ServerTexts.line(translationKey, arguments));
     }
 
     @Override
     public void replyError(String translationKey, Object... arguments) {
-        IChatComponent message = new ChatComponentTranslation(translationKey, arguments);
+        IChatComponent message = ServerTexts.line(translationKey, arguments);
         message.getChatStyle()
             .setColor(EnumChatFormatting.RED);
         sender.addChatMessage(message);

@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +43,7 @@ final class TomlDocument implements ConfigDocument {
 
     static TomlDocument read(Path path) throws IOException {
         CommentedConfig config = TomlFormat.newConfig(LinkedHashMap::new);
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+        try (Reader reader = ConfigReading.utf8(path)) {
             new TomlParser().parse(reader, config, ParsingMode.REPLACE);
         }
         return new TomlDocument(config);

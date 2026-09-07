@@ -150,6 +150,11 @@ public final class MainConfig {
         return root.serverId;
     }
 
+    /** Язык, на котором сервер собирает строки для игроков. */
+    public String language() {
+        return root.language;
+    }
+
     public StorageSettings storage(String role) {
         ConfigData override = override(STORAGE_SECTION, role);
         if (override == null) {

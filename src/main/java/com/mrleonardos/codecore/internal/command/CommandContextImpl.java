@@ -3,13 +3,13 @@ package com.mrleonardos.codecore.internal.command;
 import java.util.Map;
 
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import com.mrleonardos.codecore.api.command.CommandContext;
 import com.mrleonardos.codecore.api.command.CommandSender;
 import com.mrleonardos.codecore.platform.Senders;
+import com.mrleonardos.codecore.platform.ServerTexts;
 
 public final class CommandContextImpl implements CommandContext {
 
@@ -48,12 +48,12 @@ public final class CommandContextImpl implements CommandContext {
 
     @Override
     public void reply(String translationKey, Object... arguments) {
-        sender.addChatMessage(new ChatComponentTranslation(translationKey, arguments));
+        sender.addChatMessage(ServerTexts.line(translationKey, arguments));
     }
 
     @Override
     public void replyError(String translationKey, Object... arguments) {
-        IChatComponent message = new ChatComponentTranslation(translationKey, arguments);
+        IChatComponent message = ServerTexts.line(translationKey, arguments);
         message.getChatStyle()
             .setColor(EnumChatFormatting.RED);
         sender.addChatMessage(message);

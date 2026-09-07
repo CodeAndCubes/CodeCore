@@ -3,8 +3,6 @@ package com.mrleonardos.codecore.internal.config;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +32,7 @@ final class JsonDocument implements ConfigDocument {
     }
 
     static JsonDocument read(Path path) throws IOException {
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+        try (Reader reader = ConfigReading.utf8(path)) {
             JsonElement parsed = new JsonParser().parse(reader);
             if (parsed == null || !parsed.isJsonObject()) {
                 throw new IOException("Config at " + path + " is not a json object");

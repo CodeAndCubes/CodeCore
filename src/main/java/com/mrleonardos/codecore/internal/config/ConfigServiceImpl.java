@@ -15,6 +15,7 @@ import com.mrleonardos.codecore.api.config.ConfigService;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
 import com.mrleonardos.codecore.api.config.SectionSpec;
 import com.mrleonardos.codecore.api.config.StorageSettings;
+import com.mrleonardos.codecore.internal.text.Texts;
 
 /**
  * Хранит все открытые файлы настроек и следит за их жизненным циклом.
@@ -37,6 +38,7 @@ public final class ConfigServiceImpl implements ConfigService {
         this.log = log;
         this.main = new MainConfig(paths, log);
         this.main.load();
+        Texts.language(main.language());
     }
 
     @Override
@@ -98,6 +100,7 @@ public final class ConfigServiceImpl implements ConfigService {
     @Override
     public void reloadAll() {
         main.reload();
+        Texts.language(main.language());
         for (Map.Entry<String, ConfigFileImpl<?>> entry : files.entrySet()) {
             ConfigSpec<?> spec = specs.get(entry.getKey());
             if (paths.needsWorld(spec) && !paths.worldAvailable()) {

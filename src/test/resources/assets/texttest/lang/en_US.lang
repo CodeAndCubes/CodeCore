@@ -1,0 +1,7 @@
+# Файл перевода для проверки чтения, к настоящему моду отношения не имеет.
+texttest.message.plain=Nothing to fill in
+texttest.message.one=Home %s is set
+texttest.message.count=Homes: %d of %d
+texttest.message.order=%2$s belongs to %1$s
+texttest.message.only_english=This line has no translation
+texttest.message.percent=Full by 100%%
