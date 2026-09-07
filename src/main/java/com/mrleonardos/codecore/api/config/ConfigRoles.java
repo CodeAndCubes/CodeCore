@@ -27,6 +27,9 @@ public final class ConfigRoles {
     /** Служебные мелочи сервера: рассылка, задания по расписанию, перезапуск, очистка, слоты. */
     public static final String UTILS = "utils";
 
+    /** Контент из конфига: архетипы, экземпляры, привязка мест. */
+    public static final String CONTENT = "content";
+
     /** Наибольшая длина имени роли. */
     public static final int MAX_LENGTH = 32;
 
