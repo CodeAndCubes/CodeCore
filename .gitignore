@@ -1,17 +1,17 @@
-.gradle/
-build/
-out/
-bin/
-.idea/
+/.gradle/
+/build/
+/out/
+/bin/
+/.idea/
 *.iml
 *.ipr
 *.iws
 .classpath
 .project
-.settings/
-.vscode/
-run/
-openspec/
+/.settings/
+/.vscode/
+/run/
+/openspec/
 *.md
 !README.md
 !perms.md
@@ -19,4 +19,4 @@ openspec/
 # обязаны ехать в репозиторий.
 !src/**/*.md
 # Логи запусков
-logs/
+/logs/
