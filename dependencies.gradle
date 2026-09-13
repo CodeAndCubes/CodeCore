@@ -13,11 +13,32 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.mrleonardos:codesides:1.0.0'
     testImplementation 'org.ow2.asm:asm-debug-all:5.0.3'
+
+    // Драйверы только для тестов, в jar ядра не едут: их кладёт администратор. sqlite это настоящий
+    // движок встроенного слоя, H2 в режиме совместимости MySQL это эмуляция MariaDB, и в отчёте теста
+    // она так и названа: блокировок строк и тонкостей MariaDB он не повторяет.
+    testImplementation 'org.xerial:sqlite-jdbc:3.45.1.0'
+    testImplementation 'com.h2database:h2:2.2.224'
+
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Драйвер sqlite для живой проверки слоя баз: `./gradlew runServer -Psqlite`. На настоящем сервере
+    // драйвер кладёт администратор в mods/ или libs/, поэтому в рантайм сборки он не едет.
+    if (project.hasProperty('sqlite')) {
+        runtimeOnly 'org.xerial:sqlite-jdbc:3.45.1.0'
+    }
 }
 
 test {
     useJUnitPlatform()
+
+    // Прогон тестов на другой Java: `./gradlew test -PtestJdk=8`. Байткод у мода всегда восьмой, а вот
+    // ведёт себя он на разных версиях по-разному: серверы 1.7.10 живут и на 8, и на 21 под lwjgl3ify.
+    if (project.hasProperty('testJdk')) {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(project.property('testJdk') as int)
+        }
+    }
     testLogging {
         events 'passed', 'failed', 'skipped'
     }

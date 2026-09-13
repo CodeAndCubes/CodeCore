@@ -12,6 +12,7 @@ import com.mrleonardos.codecore.api.config.ConfigRoles;
 import com.mrleonardos.codecore.api.config.ConfigScope;
 import com.mrleonardos.codecore.api.config.ConfigSpec;
 import com.mrleonardos.codecore.internal.BuiltinRoles;
+import com.mrleonardos.codecore.internal.BuiltinServices;
 import com.mrleonardos.codecore.internal.CoreRuntimeImpl;
 import com.mrleonardos.codecore.internal.SideSetup;
 import com.mrleonardos.codecore.internal.avatar.AvatarConfigSender;
@@ -28,6 +29,7 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 
 @Mod(
     modid = CoreConstants.MODID,
@@ -68,6 +70,7 @@ public final class CodeCoreMod {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         BuiltinRoles.install(runtime.adapters(), runtime.sections());
+        BuiltinServices.install(runtime);
         CodeApi.commands()
             .register(CoreCommands.root());
         FMLCommonHandler.instance()
@@ -94,6 +97,7 @@ public final class CodeCoreMod {
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         runtime.installCommands(event);
+        runtime.checkDatabases();
 
         File worldDirectory = DimensionManager.getCurrentSaveRootDirectory();
         if (worldDirectory == null) {
@@ -103,8 +107,23 @@ public final class CodeCoreMod {
         runtime.attachWorld(worldDirectory.toPath());
     }
 
+    /**
+     * Сервер останавливается.
+     *
+     * <p>
+     * Тика с этого момента нет, и об этом надо сказать раньше соседей: моды дописывают своё состояние
+     * именно здесь, а слой баз запрещает держать главный поток, пока тик идёт. Ядро узнаёт о событии
+     * первым, потому что соседи объявили его своей зависимостью.
+     */
+    @Mod.EventHandler
+    public void serverStopping(FMLServerStoppingEvent event) {
+        runtime.tickDriver()
+            .stopped();
+    }
+
     @Mod.EventHandler
     public void serverStopped(FMLServerStoppedEvent event) {
         runtime.detachWorld();
+        runtime.closeDatabases();
     }
 }

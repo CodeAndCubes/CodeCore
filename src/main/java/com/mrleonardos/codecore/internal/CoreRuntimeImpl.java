@@ -16,6 +16,7 @@ import com.mrleonardos.codecore.internal.adapter.AdapterRegistryImpl;
 import com.mrleonardos.codecore.internal.command.CommandServiceImpl;
 import com.mrleonardos.codecore.internal.config.ConfigPaths;
 import com.mrleonardos.codecore.internal.config.ConfigServiceImpl;
+import com.mrleonardos.codecore.internal.db.DatabaseServiceImpl;
 import com.mrleonardos.codecore.internal.net.NetworkServiceImpl;
 import com.mrleonardos.codecore.internal.schedule.MainThreadQueue;
 import com.mrleonardos.codecore.internal.schedule.SchedulerImpl;
@@ -41,6 +42,9 @@ public final class CoreRuntimeImpl implements CoreRuntime {
     private final CommandServiceImpl commands;
     private final TickDriver tickDriver;
     private final ServerPlayers players;
+    private final Logger log;
+
+    private DatabaseServiceImpl databases;
 
     public CoreRuntimeImpl(Path configDirectory, Logger log) {
         this.services = new ServiceRegistryImpl(log);
@@ -54,6 +58,7 @@ public final class CoreRuntimeImpl implements CoreRuntime {
         this.commands = new CommandServiceImpl(log);
         this.tickDriver = new TickDriver(serverQueue, clientQueue);
         this.players = new ServerPlayers();
+        this.log = log;
     }
 
     @Override
@@ -94,6 +99,48 @@ public final class CoreRuntimeImpl implements CoreRuntime {
     /** Секции главного файла, которые объявило ядро. */
     public CoreSections sections() {
         return sections;
+    }
+
+    /** Журнал ядра: его же берут встроенные сервисы. */
+    public Logger log() {
+        return log;
+    }
+
+    /** Запомнить встроенный сервис баз: его надо проверить при старте сервера и закрыть при остановке. */
+    public void databases(DatabaseServiceImpl service) {
+        this.databases = service;
+    }
+
+    /**
+     * Спросить каждую базу тестовым запросом.
+     *
+     * <p>
+     * Зовётся при старте сервера. Главный поток не ждёт ответов: каждая база отвечает в своём рабочем
+     * потоке, а строка сводки появляется, когда ответили все.
+     */
+    public void checkDatabases() {
+        if (databases != null) {
+            databases.checkAll();
+        }
+    }
+
+    /** Закрыть пулы и оборвать недошедшие задачи: сервер останавливается. */
+    public void closeDatabases() {
+        if (databases != null) {
+            databases.close();
+        }
+    }
+
+    /**
+     * Идёт ли серверный тик прямо сейчас.
+     *
+     * <p>
+     * Слой баз запрещает держать главный поток, но подъём при старте и запись при остановке идут в тот же
+     * поток, в котором тика ещё нет: очередь задач в эти моменты никто не крутит, и ждать в ней ответа
+     * значило бы ждать вечно.
+     */
+    public boolean ticking() {
+        return tickDriver.ticking();
     }
 
     /** Отдать накопленные команды стартующему серверу. */

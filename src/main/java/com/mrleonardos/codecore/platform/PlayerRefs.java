@@ -3,6 +3,7 @@ package com.mrleonardos.codecore.platform;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.mrleonardos.codecore.api.actor.PlayerRef;
@@ -22,8 +23,15 @@ public final class PlayerRefs {
 
     private PlayerRefs() {}
 
-    /** Ссылка на игрока или {@code null}, если сущности нет. */
-    public static PlayerRef of(EntityPlayerMP player) {
+    /**
+     * Ссылка на игрока или {@code null}, если сущности нет.
+     *
+     * <p>
+     * Принимает любого игрока, а не только серверного, нарочно: события Forge отдают
+     * {@link EntityPlayer}, и без этого каждый мод линейки завёл бы свою проверку типа перед вызовом.
+     * Ссылка это пара «идентификатор и ник», и у игрока на клиенте она такая же.
+     */
+    public static PlayerRef of(EntityPlayer player) {
         return player == null ? null : PlayerRef.of(player.getUniqueID(), player.getCommandSenderName());
     }
 

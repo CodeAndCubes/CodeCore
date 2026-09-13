@@ -21,6 +21,7 @@ public final class CorePackets {
         channel = CodeApi.network()
             .open(CoreConstants.MODID);
         channel.register(AvatarConfigPacket.class, PacketSide.CLIENT_BOUND);
+        channel.register(ActionBarPacket.class, PacketSide.CLIENT_BOUND);
     }
 
     /** Канал ядра. Доступен после {@link #register()}. */

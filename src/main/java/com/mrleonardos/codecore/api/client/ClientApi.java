@@ -3,6 +3,7 @@ package com.mrleonardos.codecore.api.client;
 import com.mrleonardos.codecore.api.client.avatar.AvatarService;
 import com.mrleonardos.codecore.api.client.image.ImageService;
 import com.mrleonardos.codecore.api.client.ui.render.Painter;
+import com.mrleonardos.codecore.api.client.ui.render.WorldOutline;
 
 /**
  * Точка входа в клиентскую часть ядра.
@@ -31,6 +32,11 @@ public final class ClientApi {
     /** Поверхность рисования: за ней прячется весь OpenGL и весь Minecraft. */
     public static Painter painter() {
         return runtime().painter();
+    }
+
+    /** Рамки и сетки в мире: одна подписка на отрисовку на всю линейку. */
+    public static WorldOutline outline() {
+        return runtime().outline();
     }
 
     /** Поднята ли клиентская часть: на выделенном сервере её нет. */

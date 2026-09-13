@@ -247,6 +247,11 @@ class PainterSurfaceTest {
         public Painter painter() {
             return painter;
         }
+
+        @Override
+        public WorldOutline outline() {
+            return null;
+        }
     }
 
     private static final class ReadyHandle implements ImageHandle {

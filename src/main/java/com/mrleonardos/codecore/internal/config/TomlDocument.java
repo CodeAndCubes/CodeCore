@@ -25,6 +25,12 @@ import com.mrleonardos.codecore.api.config.ConfigData;
  * Содержимое читается в дерево вместе с комментариями и живёт в памяти до записи: значения на него
  * накладываются, а не подменяют его целиком. Дерево держит порядок ключей файла, потому что разбор идёт
  * в подставленную упорядоченную карту, а не в ту, что заводит парсер сам по себе.
+ *
+ * <p>
+ * Пустая таблица пишется заголовком {@code [имя]}, а не строкой {@code имя = {}}. Заводская запись
+ * night-config пишет пустую таблицу встроенной, а дописать в такую секцию нельзя: админ добавляет ниже
+ * {@code [databases.global]}, парсер отвечает «cannot modify an inline table», и файл уезжает в
+ * {@code .broken} целиком. Заголовок дописывается руками без всяких оговорок.
  */
 final class TomlDocument implements ConfigDocument {
 
@@ -125,6 +131,7 @@ final class TomlDocument implements ConfigDocument {
         TomlWriter tomlWriter = new TomlWriter();
         tomlWriter.setIndent(INDENT);
         tomlWriter.setNewline(NEWLINE);
+        tomlWriter.setWriteTableInlinePredicate(table -> false);
         StringWriter text = new StringWriter();
         tomlWriter.write(config, text);
         writer.write(TomlText.spaceSections(text.toString()));

@@ -1,6 +1,8 @@
 package com.mrleonardos.codecore.internal.client;
 
 import com.mrleonardos.codecore.api.client.image.ImageService;
+import com.mrleonardos.codecore.api.client.ui.render.WorldOutline;
+import com.mrleonardos.codecore.internal.ActionBarSink;
 import com.mrleonardos.codecore.internal.CoreRuntimeImpl;
 import com.mrleonardos.codecore.internal.client.avatar.AvatarServiceImpl;
 
@@ -20,17 +22,24 @@ public final class ClientLifecycle {
     private final CoreRuntimeImpl runtime;
     private final ImageService images;
     private final AvatarServiceImpl avatars;
+    private final ActionBarSink actionBar;
+    private final WorldOutline outline;
 
-    public ClientLifecycle(CoreRuntimeImpl runtime, ImageService images, AvatarServiceImpl avatars) {
+    public ClientLifecycle(CoreRuntimeImpl runtime, ImageService images, AvatarServiceImpl avatars,
+        ActionBarSink actionBar, WorldOutline outline) {
         this.runtime = runtime;
         this.images = images;
         this.avatars = avatars;
+        this.actionBar = actionBar;
+        this.outline = outline;
     }
 
     @SubscribeEvent
     public void onDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         avatars.reset();
         images.clearMemory();
+        actionBar.clear();
+        outline.clear();
         runtime.detachClient();
     }
 }

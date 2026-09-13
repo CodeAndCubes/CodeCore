@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -455,6 +457,21 @@ class ConfigFileImplTest {
             .scope(ConfigScope.SETTINGS);
     }
 
+    @Test
+    @DisplayName("пустая карта пишется заголовком секции, и админ дописывает в неё руками")
+    void anEmptyMapIsWrittenAsATableHeader() throws IOException {
+        open(spec().build());
+
+        assertTrue(text().contains("[entries]"), text());
+        assertFalse(text().contains("entries = {}"), "встроенную таблицу нельзя дополнить секцией ниже");
+
+        write(text() + "\n[entries.first]\nnumber = 7\n");
+        Settings settings = open(spec().build()).get();
+
+        assertEquals(7, settings.entries.get("first").number, "дописанная руками секция должна прочитаться");
+        assertFalse(Files.exists(broken()), "файл не должен был уехать в .broken");
+    }
+
     private ConfigFile<Settings> open(ConfigSpec<Settings> spec) {
         return service().open(spec);
     }
@@ -513,6 +530,9 @@ class ConfigFileImplTest {
         public String greeting = "привет";
 
         public int tiles = 4;
+
+        @Comment("Записи, которые заводит админ.")
+        public Map<String, Other> entries = new LinkedHashMap<>();
     }
 
     public static final class Other {

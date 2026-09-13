@@ -142,14 +142,23 @@ public final class Codec {
         return buffer.readBoolean() ? readString(buffer) : null;
     }
 
-    private static void writeSize(CodeBuffer buffer, int size) {
+    /**
+     * Записать длину своей коллекции.
+     *
+     * <p>
+     * Мод, который шлёт список собственных записей, пишет длину этим методом, а не голым
+     * {@code writeInt}: проверка потолка тогда лежит в одном месте на всю линейку, и подделанная длина
+     * не заставит принимающего выделить память до чтения самих записей.
+     */
+    public static void writeSize(CodeBuffer buffer, int size) {
         if (size > NetLimits.MAX_COLLECTION_SIZE) {
             throw new MalformedPacketException("Collection is too large to send: " + size);
         }
         buffer.writeInt(size);
     }
 
-    private static int readSize(CodeBuffer buffer) {
+    /** Прочитать длину коллекции с проверкой потолка. */
+    public static int readSize(CodeBuffer buffer) {
         require(buffer, INT_BYTES);
         int size = buffer.readInt();
         if (size < 0 || size > NetLimits.MAX_COLLECTION_SIZE) {

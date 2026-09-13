@@ -13,6 +13,7 @@ import com.mrleonardos.codecore.api.avatar.AvatarConfig;
 public final class CoreBridge {
 
     private static AvatarConfigSink avatars;
+    private static ActionBarSink actionBar;
 
     private CoreBridge() {}
 
@@ -20,10 +21,21 @@ public final class CoreBridge {
         avatars = sink;
     }
 
+    public static void actionBar(ActionBarSink sink) {
+        actionBar = sink;
+    }
+
     /** Применить присланную сервером настройку аватаров; на сервере вызов ничего не делает. */
     public static void applyAvatars(AvatarConfig config) {
         if (avatars != null) {
             avatars.apply(config);
+        }
+    }
+
+    /** Показать строку над хотбаром; на сервере вызов ничего не делает. */
+    public static void showActionBar(String text, int seconds) {
+        if (actionBar != null) {
+            actionBar.show(text, seconds);
         }
     }
 }

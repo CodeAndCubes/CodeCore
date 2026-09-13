@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.api.config.ConfigService;
 import com.mrleonardos.codecore.api.config.SectionSpec;
+import com.mrleonardos.codecore.internal.config.HudSection;
 import com.mrleonardos.codecore.internal.config.ImagesSection;
 import com.mrleonardos.codecore.internal.permission.PermissionsSection;
 
@@ -19,9 +20,11 @@ public final class CoreSections {
 
     private static final String IMAGES_SECTION = "images";
     private static final String PERMISSIONS_SECTION = "permissions";
+    private static final String HUD_SECTION = "hud";
 
     private final ConfigFile<PermissionsSection> permissions;
     private final ConfigFile<ImagesSection> images;
+    private final ConfigFile<HudSection> hud;
 
     public CoreSections(ConfigService configs, Logger log) {
         this.permissions = configs.section(
@@ -30,6 +33,10 @@ public final class CoreSections {
                 .build());
         this.images = configs.section(
             SectionSpec.of(IMAGES_SECTION, ImagesSection.class)
+                .build());
+        this.hud = configs.section(
+            SectionSpec.of(HUD_SECTION, HudSection.class)
+                .validator(section -> section.normalize(log))
                 .build());
     }
 
@@ -41,5 +48,10 @@ public final class CoreSections {
     /** Пределы картинок: их читает клиентская сторона. */
     public ConfigFile<ImagesSection> images() {
         return images;
+    }
+
+    /** Надписи поверх экрана: наименьшее окно повтора строки над хотбаром. */
+    public ConfigFile<HudSection> hud() {
+        return hud;
     }
 }

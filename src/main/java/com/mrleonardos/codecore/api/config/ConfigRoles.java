@@ -30,6 +30,9 @@ public final class ConfigRoles {
     /** Контент из конфига: архетипы, экземпляры, привязка мест. */
     public static final String CONTENT = "content";
 
+    /** Приваты и регионы: правила, роли, шаблоны, сами регионы. */
+    public static final String REGIONS = "regions";
+
     /** Наибольшая длина имени роли. */
     public static final int MAX_LENGTH = 32;
 

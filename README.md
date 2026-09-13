@@ -4,7 +4,20 @@
 сеть, планировщик, команды. Сам по себе ничего в игре не делает. Это фундамент, на который опираются
 CodeChat и остальные.
 
-Подробности устройства и планы в [DESIGN.md](DESIGN.md), перечень нод прав в [perms.md](perms.md).
+Подробности устройства и планы в DESIGN.md (лежит рядом с кодом, в репозиторий не едет), перечень нод прав в [perms.md](perms.md).
+
+## Установка
+
+| Файл | Куда |
+|---|---|
+| `CodeCore-1.0.0-server.jar` | `mods/` сервера |
+| `CodeCore-1.0.0-client.jar` | `mods/` клиента |
+| `codecore-1.0.0-api.jar` | тем, кто пишет свой мод или провайдер: компиляция, на сервер не нужен |
+| `codecore-1.0.0-platform.jar` | им же, когда нужны хелперы с типами игры |
+| `codecore-1.0.0-dev.jar` | им же: deobf-версия для dev-запусков |
+
+Клиентская часть обязательна: ядро не объявляет `acceptableRemoteVersions`, и сервер не пускает игрока
+без неё. Java 8 или 17 и 21 под lwjgl3ify, Minecraft 1.7.10, Forge 10.13.4.1614.
 
 ## Сборка
 
@@ -25,8 +38,8 @@ Jabel. Готовый мод работает на обычной Java 8.
 берут `compileOnly` и только слои платформы соседних модов:
 
 ```groovy
-compileOnly 'com.mrleonardos.codecore:CodeCore:0.1.0:api'
-compileOnly 'com.mrleonardos.codecore:CodeCore:0.1.0:platform'
+compileOnly 'com.mrleonardos.codecore:CodeCore:1.0.0:api'
+compileOnly 'com.mrleonardos.codecore:CodeCore:1.0.0:platform'
 ```
 
 ### Шум в dev-запуске
@@ -85,6 +98,7 @@ config/code/
 ├── config.toml                       главный файл линейки
 ├── core/
 │   ├── core-avatars.toml             откуда брать аватары, решает сервер
+│   ├── core-databases.toml           базы данных для модов линейки
 │   ├── client/core-avatars.toml      предпочтение игрока
 │   └── cache/images/                 готовые картинки клиента, не конфиг
 └── permissions/
@@ -101,6 +115,83 @@ config/code/
 
 Комментарии к своим ключам мод пишет заново при каждой записи, а строки, дописанные человеком, и
 незнакомые ключи остаются на месте.
+
+## Базы данных
+
+Мод, которому нужна таблица, не тянет свой драйвер и свой пул: базы описаны в одном файле ядра и
+выдаются по имени.
+
+```java
+Database global = CodeApi.services().require(DatabaseService.class).database("global");
+
+global.migrations("mymod").apply(Arrays.asList(
+    MigrationStep.of(1, "create table if not exists mymod_homes ("
+        + "owner varchar(64) not null, name varchar(64) not null, primary key (owner, name))")));
+
+global.async(connection -> {
+    try (PreparedStatement query = connection.prepareStatement(
+        "select name from mymod_homes where owner = ?")) {
+        query.setString(1, owner.toString());
+        …
+    }
+}).thenAccept(homes -> показатьИгроку(homes));
+```
+
+Правила, на которых всё держится:
+
+- **Главный поток базу не ждёт.** `connection()`, `sync` и `syncInTransaction` из тика отказывают
+  `IllegalStateException` до всякого обращения к базе: сеть отвечает за десятки миллисекунд, а тик
+  длится пятьдесят. Результат в мире нужен, значит `async`: работа идёт в рабочем потоке базы, а
+  обещание завершается в серверном тике.
+- **SQL остаётся у мода.** Ядро знает соединения и версии схемы, запросы пишет мод. Ни ORM, ни
+  построителя запросов здесь нет и не будет.
+- **Драйвер кладёт администратор.** Ядро его не поставляет и не шейдит: `org.mariadb.jdbc.Driver` или
+  `org.sqlite.JDBC` едет в `mods/` или `libs/` сервера. Нет класса, значит в логе стоит его имя, а
+  остальные базы работают.
+- **Движка два: MariaDB и SQLite.** Это рамка встроенной реализации, а не интерфейса: чужой мод вправе
+  зарегистрировать свой `DatabaseService` с любым движком, реестр это допускает.
+- **Миграции на мод.** Ядро держит одну свою таблицу `schema_migrations` с парой `mod_id` и `version`.
+  Шаг применяется одной транзакцией вместе со строкой о версии. Шаги со схемой пишутся идемпотентно
+  (`create table if not exists`): MariaDB завершает транзакцию на каждом DDL сама.
+
+Файл `config/code/core/core-databases.toml`:
+
+```toml
+[databases.global]
+role = "global"
+driverClass = "org.mariadb.jdbc.Driver"
+url = "jdbc:mariadb://10.0.0.5:3306/mymods"
+user = "mymods"
+password = "secret"
+poolSize = 8
+
+[databases.logs]
+role = "logs"
+driverClass = "org.sqlite.JDBC"
+url = "jdbc:sqlite:world/codecore/logs.db"
+
+[roleDefaults]
+server = "local"
+```
+
+Имя таблицы это имя базы, по нему её и спрашивает мод. Метка `role` нужна для поиска по роли и может
+повторяться: когда метку носят несколько баз, выбор делает `roleDefaults`, а сам мод первую попавшуюся
+не берёт никогда. Имя сервера в мульти-серверной установке живёт в главном файле линейки ключом
+`serverId` и отдаётся через `DatabaseService.serverId()`.
+
+Пароль лежит открытым текстом. Файл серверный, в систему контроля версий он не едет, и права на него
+стоит держать такими же, как на файлы мира.
+
+При старте сервера ядро спрашивает каждую базу тестовым запросом и пишет строку на каждую:
+
+```
+[CodeCore]: Database global (global, mariadb): ok, 12 ms
+[CodeCore]: Database logs (logs, sqlite): unreachable, no such table
+[CodeCore]: Databases are up: 1 of 2 reachable, server id survival-1
+```
+
+Отказ базу навсегда не помечает: следующий запрос снова пытается соединиться, и поднятая администратором
+СУБД подхватывается без перезапуска сервера.
 
 ## Язык сообщений
 

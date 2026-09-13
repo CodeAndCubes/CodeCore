@@ -6,18 +6,27 @@ import java.util.Arrays;
  * Буфер поверх массива байт: тот же {@link CodeBuffer}, но без единого класса сетевой библиотеки.
  *
  * <p>
- * Нужен затем, чтобы {@link Codec} проверялся ровно теми же тестами и на нём, и на реализации ядра поверх
- * netty: расхождение между ними тут же видно, а чужому моду видно, что своей реализации буфера хватает.
+ * Нужен там, где канала нет, а пакет проверить надо: круговой прогон {@code write} и {@code read} в тесте
+ * мода. Настоящий буфер ядра сидит на netty и требует живого соединения, поэтому без этой замены каждый
+ * мод линейки писал бы девять методов заново, и копии успели бы разойтись.
+ *
+ * <p>
+ * Здесь же {@link Codec} проверяется теми же тестами, что и на реализации ядра поверх netty: расхождение
+ * между ними тут же видно, а чужому моду видно, что своей реализации буфера хватает.
  */
-final class ArrayBuffer implements CodeBuffer {
+public final class ArrayBuffer implements CodeBuffer {
 
-    private byte[] bytes = new byte[16];
+    private static final int INITIAL = 16;
+    private static final int INT_BYTES = 4;
+    private static final int BYTE_MASK = 0xFF;
+
+    private byte[] bytes = new byte[INITIAL];
     private int write;
     private int read;
 
     @Override
     public void writeInt(int value) {
-        room(4);
+        room(INT_BYTES);
         bytes[write++] = (byte) (value >>> 24);
         bytes[write++] = (byte) (value >>> 16);
         bytes[write++] = (byte) (value >>> 8);
@@ -26,10 +35,10 @@ final class ArrayBuffer implements CodeBuffer {
 
     @Override
     public int readInt() {
-        require(4);
-        return ((bytes[read++] & 0xFF) << 24) | ((bytes[read++] & 0xFF) << 16)
-            | ((bytes[read++] & 0xFF) << 8)
-            | (bytes[read++] & 0xFF);
+        require(INT_BYTES);
+        return ((bytes[read++] & BYTE_MASK) << 24) | ((bytes[read++] & BYTE_MASK) << 16)
+            | ((bytes[read++] & BYTE_MASK) << 8)
+            | (bytes[read++] & BYTE_MASK);
     }
 
     @Override
@@ -84,7 +93,8 @@ final class ArrayBuffer implements CodeBuffer {
 
     private void require(int needed) {
         if (readableBytes() < needed) {
-            throw new IndexOutOfBoundsException("буфер кончился: нужно " + needed + ", осталось " + readableBytes());
+            throw new MalformedPacketException(
+                "Buffer is out of bytes: " + needed + " needed, " + readableBytes() + " left");
         }
     }
 }
