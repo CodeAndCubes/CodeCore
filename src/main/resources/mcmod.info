@@ -6,7 +6,7 @@
 		"description": "Фундамент линейки модов: сервисы, права, сеть, конфиги, команды, интерфейс, изображения.",
 		"version": "${modVersion}",
 		"mcversion": "${minecraftVersion}",
-		"url": "",
+		"url": "https://github.com/CodeAndCubes/CodeCore",
 		"updateUrl": "",
 		"authorList": ["MrLeonardos"],
 		"credits": "",
