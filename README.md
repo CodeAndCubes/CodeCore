@@ -10,11 +10,11 @@ CodeChat и остальные.
 
 | Файл | Куда |
 |---|---|
-| `CodeCore-1.0.0-server.jar` | `mods/` сервера |
-| `CodeCore-1.0.0-client.jar` | `mods/` клиента |
-| `codecore-1.0.0-api.jar` | тем, кто пишет свой мод или провайдер: компиляция, на сервер не нужен |
-| `codecore-1.0.0-platform.jar` | им же, когда нужны хелперы с типами игры |
-| `codecore-1.0.0-dev.jar` | им же: deobf-версия для dev-запусков |
+| `CodeCore-1.1.0-server.jar` | `mods/` сервера |
+| `CodeCore-1.1.0-client.jar` | `mods/` клиента |
+| `codecore-1.1.0-api.jar` | тем, кто пишет свой мод или провайдер: компиляция, на сервер не нужен |
+| `codecore-1.1.0-platform.jar` | им же, когда нужны хелперы с типами игры |
+| `codecore-1.1.0-dev.jar` | им же: deobf-версия для dev-запусков |
 
 Клиентская часть обязательна: ядро не объявляет `acceptableRemoteVersions`, и сервер не пускает игрока
 без неё. Java 8 или 17 и 21 под lwjgl3ify, Minecraft 1.7.10, Forge 10.13.4.1614.
@@ -39,8 +39,8 @@ Jabel. Готовый мод работает на обычной Java 8.
 постраничники. Этот артефакт берут `compileOnly` и только слои платформы соседних модов:
 
 ```groovy
-compileOnly 'com.mrleonardos.codecore:CodeCore:1.0.0:api'
-compileOnly 'com.mrleonardos.codecore:CodeCore:1.0.0:platform'
+compileOnly 'com.mrleonardos.codecore:CodeCore:1.1.0:api'
+compileOnly 'com.mrleonardos.codecore:CodeCore:1.1.0:platform'
 ```
 
 ### Шум в dev-запуске

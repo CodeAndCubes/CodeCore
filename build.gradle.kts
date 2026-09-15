@@ -5,7 +5,7 @@ import org.gradle.api.tasks.bundling.Jar
 
 plugins {
 	id("com.gtnewhorizons.gtnhconvention")
-	id("com.mrleonardos.codesides") version "1.0.0"
+	id("com.mrleonardos.codesides") version "1.1.0"
 }
 
 // Хелперы платформы (Players, PlayerNames, PlayerRefs) едут отдельным артефактом с классификатором
