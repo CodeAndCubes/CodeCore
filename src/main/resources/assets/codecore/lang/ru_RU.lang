@@ -15,3 +15,7 @@ codecore.message.adapters.candidates=  кандидаты: %s
 codecore.message.adapters.missing=  не работает: %s
 codecore.message.adapters.fallback=  вместо неё: %s
 codecore.command.usage.root=/codecore reload | /codecore adapters
+codecore.present.pages.back=Назад
+codecore.present.pages.next=Далее
+codecore.present.pages.page=Страница %s из %s
+codecore.present.pages.total=всего %s
