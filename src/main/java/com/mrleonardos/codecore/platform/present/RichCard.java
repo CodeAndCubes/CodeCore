@@ -74,12 +74,22 @@ public final class RichCard {
 
     /** Кнопка в футере: переведённая метка, клик исполняет команду. */
     public RichCard button(String labelKey, String command) {
-        return action(ServerTexts.format(labelKey), command, true);
+        return action(labelKey, command, null, true);
+    }
+
+    /** Кнопка в футере с подсказкой по наведению: переведённая метка и переведённая подсказка. */
+    public RichCard button(String labelKey, String command, String hoverKey) {
+        return action(labelKey, command, hoverKey, true);
     }
 
     /** Кнопка в футере: клик подставляет команду в строку ввода. */
     public RichCard suggestion(String labelKey, String command) {
-        return action(ServerTexts.format(labelKey), command, false);
+        return action(labelKey, command, null, false);
+    }
+
+    /** Кнопка в футере с подсказкой по наведению: клик подставляет команду, наведение переводит ключ. */
+    public RichCard suggestion(String labelKey, String command, String hoverKey) {
+        return action(labelKey, command, hoverKey, false);
     }
 
     /** Готовые строки: одна на строку чата. */
@@ -107,16 +117,19 @@ public final class RichCard {
         return all;
     }
 
-    private RichCard action(String label, String command, boolean runs) {
+    private RichCard action(String labelKey, String command, String hoverKey, boolean runs) {
         if (actions == null) {
             actions = RichLine.of();
         } else {
             actions.spacing(BUTTON_GAP);
         }
         if (runs) {
-            actions.button(label, command);
+            actions.button(ServerTexts.format(labelKey), command);
         } else {
-            actions.suggestion(label, command);
+            actions.suggestion(ServerTexts.format(labelKey), command);
+        }
+        if (hoverKey != null) {
+            actions.hover(hoverKey);
         }
         return this;
     }

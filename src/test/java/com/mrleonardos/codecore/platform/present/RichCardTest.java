@@ -132,6 +132,49 @@ class RichCardTest {
     }
 
     @Test
+    @DisplayName("кнопка с подсказкой несёт клик и подсказку целиком, со скобками")
+    void hoverButtonCarriesBothEventsOnWholeButton() {
+        List<IChatComponent> footer = RichCard.of("Заголовок")
+            .button("codecore.present.pages.back", "/rg list 1", "codecore.present.pages.next")
+            .suggestion("codecore.present.pages.next", "/rg info ", "codecore.present.pages.back")
+            .build()
+            .get(1)
+            .getSiblings();
+
+        assertEquals(7, footer.size());
+        for (int i = 0; i < 3; i++) {
+            assertEquals(
+                ClickEvent.Action.RUN_COMMAND,
+                footer.get(i)
+                    .getChatStyle()
+                    .getChatClickEvent()
+                    .getAction());
+            assertEquals(
+                "Next",
+                footer.get(i)
+                    .getChatStyle()
+                    .getChatHoverEvent()
+                    .getValue()
+                    .getUnformattedText());
+        }
+        for (int i = 4; i < 7; i++) {
+            assertEquals(
+                ClickEvent.Action.SUGGEST_COMMAND,
+                footer.get(i)
+                    .getChatStyle()
+                    .getChatClickEvent()
+                    .getAction());
+            assertEquals(
+                "Back",
+                footer.get(i)
+                    .getChatStyle()
+                    .getChatHoverEvent()
+                    .getValue()
+                    .getUnformattedText());
+        }
+    }
+
+    @Test
     @DisplayName("черта стоит отдельной строкой")
     void separatorIsItsOwnLine() {
         List<IChatComponent> lines = RichCard.of("Заголовок")
