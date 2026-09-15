@@ -1,5 +1,7 @@
 package com.mrleonardos.codecore.internal.schedule;
 
+import com.mrleonardos.codecore.internal.ThreadNames;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 
@@ -17,8 +19,6 @@ import cpw.mods.fml.relauncher.Side;
  */
 final class RunningSide {
 
-    private static final String SERVER_THREAD = "Server thread";
-
     private RunningSide() {}
 
     static boolean serverBound() {
@@ -30,7 +30,7 @@ final class RunningSide {
 
     /** Правило целиком, без обращения к игре: сюда и смотрят тесты. */
     static boolean serverBound(boolean dedicated, String threadName) {
-        return dedicated || SERVER_THREAD.equals(threadName);
+        return dedicated || ThreadNames.SERVER.equals(threadName);
     }
 
     private static boolean dedicated() {

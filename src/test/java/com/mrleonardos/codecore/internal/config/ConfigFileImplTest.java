@@ -179,6 +179,29 @@ class ConfigFileImplTest {
     }
 
     @Test
+    @DisplayName("сорвавшаяся запись не оставляет временный файл рядом с настройками")
+    void failedWriteLeavesNoTemporaryFile() throws IOException {
+        Path file = path();
+        LogCapture capture = LogCapture.attach(LOG);
+
+        try {
+            ConfigWriting.atomically(file, writer -> {
+                writer.write("schemaVersion = 1\n");
+                throw new IOException("место кончилось");
+            }, "core/" + FILE, LOG);
+
+            assertFalse(Files.exists(file.resolveSibling(FILE + ConfigKeys.TEMPORARY_SUFFIX)), "tmp убран");
+            assertFalse(Files.exists(file), "недописанный файл не занимает место настоящего");
+            assertTrue(
+                capture.text()
+                    .contains("Failed to save config core/" + FILE),
+                capture.text());
+        } finally {
+            capture.detach();
+        }
+    }
+
+    @Test
     @DisplayName("повторное открытие того же файла другим классом отклонено")
     void reopeningWithAnotherTypeIsRefused() {
         ConfigServiceImpl service = service();

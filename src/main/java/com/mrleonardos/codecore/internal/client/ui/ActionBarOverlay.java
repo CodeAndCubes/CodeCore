@@ -36,6 +36,8 @@ public final class ActionBarOverlay implements ActionBarSink {
     private static final int WHITE = 0xFFFFFF;
     private static final int SHADOW = 0x3F3F3F;
     private static final int OPAQUE = 255;
+    private static final int MIN_SECONDS = 1;
+    private static final int MAX_SECONDS = 60;
 
     /** Ниже этой альфы шрифт игры считает цвет непрозрачным, и строка вспыхнула бы на прощание. */
     private static final int MIN_ALPHA = 8;
@@ -52,7 +54,12 @@ public final class ActionBarOverlay implements ActionBarSink {
     @Override
     public void show(String text, int seconds) {
         this.text = text == null ? "" : text;
-        this.hideAt = System.currentTimeMillis() + seconds * MILLIS;
+        this.hideAt = System.currentTimeMillis() + boundedSeconds(seconds) * MILLIS;
+    }
+
+    /** Срок приходит по сети, поэтому держится в границах: ноль убрал бы строку сразу, гигантский вешал её навсегда. */
+    static int boundedSeconds(int seconds) {
+        return Math.max(MIN_SECONDS, Math.min(seconds, MAX_SECONDS));
     }
 
     @Override

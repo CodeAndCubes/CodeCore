@@ -2,6 +2,8 @@ package com.mrleonardos.codecore.internal.db;
 
 import java.util.function.BooleanSupplier;
 
+import com.mrleonardos.codecore.internal.ThreadNames;
+
 /**
  * Тот ли это поток, в котором идёт тик.
  *
@@ -12,13 +14,10 @@ import java.util.function.BooleanSupplier;
  */
 public final class MainThreads {
 
-    private static final String SERVER = "Server thread";
-    private static final String CLIENT = "Client thread";
-
     private MainThreads() {}
 
     public static boolean isMain(String threadName) {
-        return SERVER.equals(threadName) || CLIENT.equals(threadName);
+        return ThreadNames.SERVER.equals(threadName) || ThreadNames.CLIENT.equals(threadName);
     }
 
     /** Проверка для текущего потока: её и держит у себя каждая база. */

@@ -3,13 +3,13 @@ package com.mrleonardos.codecore.internal.client.image;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.mrleonardos.codecore.api.client.image.ImageLimits;
 import com.mrleonardos.codecore.api.client.image.ImageSource;
+import com.mrleonardos.codecore.internal.client.HttpConnections;
 import com.mrleonardos.codecore.internal.client.LimitedStream;
 
 /**
@@ -21,11 +21,8 @@ import com.mrleonardos.codecore.internal.client.LimitedStream;
  */
 final class ImageFetcher {
 
-    private static final String USER_AGENT_HEADER = "User-Agent";
-    private static final String USER_AGENT = "CodeCore";
     private static final String ACCEPT_HEADER = "Accept";
     private static final String ACCEPT = "image/*";
-    private static final int HTTP_OK = 200;
 
     private ImageFetcher() {}
 
@@ -35,15 +32,12 @@ final class ImageFetcher {
 
     private static byte[] download(String address) throws IOException {
         ImageLimits limits = ImageLimits.current();
-        HttpURLConnection connection = (HttpURLConnection) new URL(address).openConnection();
-        connection.setConnectTimeout(limits.connectTimeoutMs());
-        connection.setReadTimeout(limits.readTimeoutMs());
-        connection.setRequestProperty(USER_AGENT_HEADER, USER_AGENT);
+        HttpURLConnection connection = HttpConnections.open(address);
         connection.setRequestProperty(ACCEPT_HEADER, ACCEPT);
         connection.setInstanceFollowRedirects(true);
 
         try {
-            if (connection.getResponseCode() != HTTP_OK) {
+            if (connection.getResponseCode() != HttpConnections.HTTP_OK) {
                 throw new IOException("Unexpected response " + connection.getResponseCode() + " from " + address);
             }
             if (connection.getContentLength() > limits.maxBytes()) {

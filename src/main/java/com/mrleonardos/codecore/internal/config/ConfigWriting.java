@@ -38,6 +38,19 @@ final class ConfigWriting {
             Files.move(temporary, path, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException failure) {
             log.error("Failed to save config {}: {}", describe, failure.toString());
+            discard(temporary, describe, log);
+        }
+    }
+
+    private static void discard(Path temporary, String describe, Logger log) {
+        try {
+            Files.deleteIfExists(temporary);
+        } catch (IOException leftover) {
+            log.warn(
+                "Temporary file {} of config {} could not be removed: {}",
+                temporary,
+                describe,
+                leftover.toString());
         }
     }
 }

@@ -3,9 +3,11 @@ package com.mrleonardos.codecore.internal.command;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.command.CommandException;
@@ -79,6 +81,94 @@ class CommandBridgeTest {
         bridge.processCommand(new Console(), new String[0]);
 
         assertEquals(Arrays.asList(SenderKind.CONSOLE), seen);
+    }
+
+    @Test
+    @DisplayName("лист без действия и без своей справки отвечает ключом usage с путём команды")
+    void leafWithoutUsageAnswersWithPath() {
+        CommandBridge bridge = new CommandBridge(
+            CommandNode.literal("test")
+                .child(CommandNode.literal("sub")));
+
+        CommandException failure = assertThrows(
+            CommandException.class,
+            () -> bridge.processCommand(new Console(), new String[] { "sub" }));
+
+        assertEquals(CommandMessages.USAGE, failure.getMessage());
+        assertArrayEquals(new Object[] { "/test sub" }, failure.getErrorOjbects());
+    }
+
+    @Test
+    @DisplayName("корень без действия и без справки называет хоть имя команды")
+    void rootWithoutUsageAnswersWithItsName() {
+        CommandBridge bridge = new CommandBridge(CommandNode.literal("test"));
+
+        CommandException failure = assertThrows(
+            CommandException.class,
+            () -> bridge.processCommand(new Console(), new String[0]));
+
+        assertEquals(CommandMessages.USAGE, failure.getMessage());
+        assertArrayEquals(new Object[] { "/test" }, failure.getErrorOjbects());
+    }
+
+    @Test
+    @DisplayName("свой ключ справки уходит как есть, без подстановки")
+    void ownUsageKeyGoesUnchanged() {
+        CommandBridge bridge = new CommandBridge(
+            CommandNode.literal("test")
+                .child(
+                    CommandNode.literal("sub")
+                        .usage("mymod.command.sub.usage")));
+
+        CommandException failure = assertThrows(
+            CommandException.class,
+            () -> bridge.processCommand(new Console(), new String[] { "sub" }));
+
+        assertEquals("mymod.command.sub.usage", failure.getMessage());
+        assertArrayEquals(new Object[0], failure.getErrorOjbects());
+    }
+
+    @Test
+    @DisplayName("хвост после листа без аргументов отвергается как незнакомое слово")
+    void tailAfterBareLeafIsRejected() {
+        List<String> done = new ArrayList<>();
+        CommandBridge bridge = new CommandBridge(
+            CommandNode.literal("test")
+                .child(
+                    CommandNode.literal("go")
+                        .executes(context -> done.add("go"))));
+
+        CommandException failure = assertThrows(
+            CommandException.class,
+            () -> bridge.processCommand(new Console(), new String[] { "go", "extra" }));
+
+        assertEquals(CommandMessages.UNKNOWN_SUBCOMMAND, failure.getMessage());
+        assertTrue(done.isEmpty(), "действие не выполнялось");
+    }
+
+    @Test
+    @DisplayName("хвост после всех аргументов отвергается, жадный аргумент съедает его целиком")
+    void tailAfterArgumentsIsRejectedButGreedySwallowsIt() {
+        CommandBridge strict = new CommandBridge(
+            CommandNode.literal("test")
+                .arg("count", ArgumentTypes.integer(1, 64))
+                .executes(context -> {}));
+
+        CommandException failure = assertThrows(
+            CommandException.class,
+            () -> strict.processCommand(new Console(), new String[] { "5", "extra" }));
+
+        assertEquals(CommandMessages.UNKNOWN_SUBCOMMAND, failure.getMessage());
+
+        List<String> reasons = new ArrayList<>();
+        CommandBridge greedy = new CommandBridge(
+            CommandNode.literal("test")
+                .arg("reason", ArgumentTypes.text())
+                .executes(context -> reasons.add(context.get("reason"))));
+
+        greedy.processCommand(new Console(), new String[] { "hello", "world" });
+
+        assertEquals(Collections.singletonList("hello world"), reasons);
     }
 
     @Test

@@ -1,7 +1,5 @@
 package com.mrleonardos.codecore.internal.command;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import com.mrleonardos.codecore.CoreMessages;
@@ -10,11 +8,11 @@ import com.mrleonardos.codecore.api.CodeApi;
 import com.mrleonardos.codecore.api.adapter.RoleStatus;
 import com.mrleonardos.codecore.api.command.CommandContext;
 import com.mrleonardos.codecore.api.command.CommandNode;
+import com.mrleonardos.codecore.internal.adapter.RoleLines;
 
 /** Обслуживающие команды ядра. */
 public final class CoreCommands {
 
-    private static final String SEPARATOR = ", ";
     private static final String NOTHING = "-";
 
     private CoreCommands() {}
@@ -58,25 +56,15 @@ public final class CoreCommands {
                     status.choice()
                         .name());
             }
-            context.reply(CoreMessages.ADAPTERS_CANDIDATES, join(status.candidates()));
-            context.reply(CoreMessages.ADAPTERS_MISSING, join(status.missing()));
+            context.reply(CoreMessages.ADAPTERS_CANDIDATES, shown(RoleLines.candidates(status)));
+            context.reply(CoreMessages.ADAPTERS_MISSING, shown(RoleLines.capabilities(status.missing())));
             if (status.fallback() != null) {
                 context.reply(CoreMessages.ADAPTERS_FALLBACK, status.fallback());
             }
         }
     }
 
-    private static String join(Collection<?> values) {
-        if (values.isEmpty()) {
-            return NOTHING;
-        }
-        StringBuilder text = new StringBuilder();
-        for (Iterator<?> iterator = values.iterator(); iterator.hasNext();) {
-            text.append(iterator.next());
-            if (iterator.hasNext()) {
-                text.append(SEPARATOR);
-            }
-        }
-        return text.toString();
+    private static String shown(String line) {
+        return line.isEmpty() ? NOTHING : line;
     }
 }

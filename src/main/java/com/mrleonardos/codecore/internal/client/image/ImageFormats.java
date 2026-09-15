@@ -4,6 +4,7 @@ import javax.imageio.spi.IIORegistry;
 
 import org.apache.logging.log4j.LogManager;
 
+import com.mrleonardos.codecore.CoreConstants;
 import com.twelvemonkeys.imageio.plugins.webp.WebPImageReaderSpi;
 
 /**
@@ -27,7 +28,7 @@ final class ImageFormats {
             IIORegistry.getDefaultInstance()
                 .registerServiceProvider(new WebPImageReaderSpi());
         } catch (Throwable unavailable) {
-            LogManager.getLogger("CodeCore")
+            LogManager.getLogger(CoreConstants.MOD_NAME)
                 .warn(
                     "WebP decoder is missing from this build, webp avatars will not load: {}",
                     unavailable.toString());

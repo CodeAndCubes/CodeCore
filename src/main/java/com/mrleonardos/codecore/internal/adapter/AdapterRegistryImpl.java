@@ -243,30 +243,27 @@ public final class AdapterRegistryImpl implements AdapterRegistry {
 
     private void report() {
         for (RoleStatus status : statuses.values()) {
+            String candidates = RoleLines.candidates(status);
             if (status.owner() == null && status.fallback() != null) {
                 log.warn(
                     "Role {} is held by nobody ({}), candidates: {}; {}",
                     status.role(),
                     status.choice(),
-                    status.candidates(),
+                    candidates,
                     status.fallback());
             } else if (status.owner() == null) {
-                log.warn(
-                    "Role {} is held by nobody ({}), candidates: {}",
-                    status.role(),
-                    status.choice(),
-                    status.candidates());
+                log.warn("Role {} is held by nobody ({}), candidates: {}", status.role(), status.choice(), candidates);
             } else {
                 log.info(
                     "Role {} is held by {} ({}), candidates: {}",
                     status.role(),
                     status.owner(),
                     status.choice(),
-                    status.candidates());
+                    candidates);
             }
             if (!status.missing()
                 .isEmpty()) {
-                log.warn("Role {} does not work: {}", status.role(), status.missing());
+                log.warn("Role {} does not work: {}", status.role(), RoleLines.capabilities(status.missing()));
             }
         }
     }

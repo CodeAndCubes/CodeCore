@@ -101,6 +101,7 @@ public final class ConfigServiceImpl implements ConfigService {
     public void reloadAll() {
         main.reload();
         Texts.language(main.language());
+        int reloaded = 0;
         for (Map.Entry<String, ConfigFileImpl<?>> entry : files.entrySet()) {
             ConfigSpec<?> spec = specs.get(entry.getKey());
             if (paths.needsWorld(spec) && !paths.worldAvailable()) {
@@ -108,8 +109,9 @@ public final class ConfigServiceImpl implements ConfigService {
             }
             entry.getValue()
                 .reload();
+            reloaded++;
         }
-        log.info("Reloaded {} config file(s) and the main config", files.size());
+        log.info("Reloaded {} config file(s) and the main config", reloaded);
     }
 
     /** Конец постинициализации: набор секций и ролей больше не меняется, главный файл пишется. */

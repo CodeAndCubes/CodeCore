@@ -2,6 +2,8 @@ package com.mrleonardos.codecore.internal.config;
 
 import java.nio.file.Path;
 
+import org.apache.logging.log4j.Logger;
+
 import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.api.config.SectionSpec;
 
@@ -16,12 +18,14 @@ final class SectionFile<T> implements ConfigFile<T> {
 
     private final SectionSpec<T> spec;
     private final MainConfig owner;
+    private final Logger log;
 
     private T value;
 
-    SectionFile(SectionSpec<T> spec, MainConfig owner) {
+    SectionFile(SectionSpec<T> spec, MainConfig owner, Logger log) {
         this.spec = spec;
         this.owner = owner;
+        this.log = log;
     }
 
     @Override
@@ -59,8 +63,18 @@ final class SectionFile<T> implements ConfigFile<T> {
                 .get();
             return;
         }
-        spec.validator()
-            .accept(parsed);
+        try {
+            spec.validator()
+                .accept(parsed);
+        } catch (RuntimeException failure) {
+            log.warn(
+                "Section {} of the main config was rejected by its validator, defaults are used: {}",
+                spec.name(),
+                failure.toString());
+            value = spec.defaults()
+                .get();
+            return;
+        }
         value = parsed;
     }
 

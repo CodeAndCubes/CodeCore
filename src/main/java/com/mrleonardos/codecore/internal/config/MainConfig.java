@@ -58,26 +58,10 @@ public final class MainConfig {
         "\"auto\" наш мод, если он стоит; \"off\" роль не занята никем; иначе имя владельца.",
         "Известные имена сервер называет при старте и по /codecore adapters." };
 
-    private static final String DATABASES_EXAMPLE = "\n" + "# Базы данных. Записей сколько нужно, каждая независимая.\n"
-        + "# Драйвер админ кладёт в mods/ или libs/ сам, ядро грузит класс по имени.\n"
-        + "# [[databases]]\n"
-        + "# id = \"global\"\n"
-        + "# label = \"global\"\n"
-        + "# driverClass = \"org.mariadb.jdbc.Driver\"\n"
-        + "# url = \"jdbc:mariadb://10.0.0.5:3306/mymods\"\n"
-        + "# user = \"mymods\"\n"
-        + "# password = \"secret\"\n"
-        + "# poolSize = 8\n"
-        + "# connectionTimeoutMs = 5000\n"
-        + "# queryTimeoutMs = 10000\n"
-        + "# idleTimeoutSeconds = 60\n"
-        + "\n"
-        + "# Какую запись брать, когда меток с одним именем несколько.\n"
-        + "# [labelDefaults]\n"
-        + "# server = \"local\"\n";
-
-    private static final String DATABASES_KEY = "databases";
-    private static final String LABEL_DEFAULTS_KEY = "labelDefaults";
+    private static final String DATABASES_EXAMPLE = "\n"
+        + "# Базы данных модов лежат в core/core-databases.toml, а не в этом файле.\n"
+        + "# Каждая база это [databases.<имя>] с ключом role и настройками соединения;\n"
+        + "# какую брать, когда метку роли носят несколько, решает [roleDefaults].\n";
 
     private final Map<String, SectionFile<?>> sections = new LinkedHashMap<>();
     private final ConfigPaths paths;
@@ -125,7 +109,7 @@ public final class MainConfig {
         if (reserved(spec.name()) || sections.containsKey(spec.name())) {
             throw new IllegalStateException("Section " + spec.name() + " of the main config is already declared");
         }
-        SectionFile<T> section = new SectionFile<>(spec, this);
+        SectionFile<T> section = new SectionFile<>(spec, this, log);
         sections.put(spec.name(), section);
         section.bind(document);
         return section;
@@ -200,10 +184,7 @@ public final class MainConfig {
 
     private void render(Writer writer) throws IOException {
         document.writeTo(writer);
-        ConfigData data = document.data();
-        if (!data.has(DATABASES_KEY) && !data.has(LABEL_DEFAULTS_KEY)) {
-            writer.write(DATABASES_EXAMPLE);
-        }
+        writer.write(DATABASES_EXAMPLE);
     }
 
     private void writeOwners() {

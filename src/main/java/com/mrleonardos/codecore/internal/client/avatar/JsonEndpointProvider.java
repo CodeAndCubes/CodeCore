@@ -3,7 +3,6 @@ package com.mrleonardos.codecore.internal.client.avatar;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +17,7 @@ import com.google.gson.JsonParser;
 import com.mrleonardos.codecore.api.client.avatar.AvatarProvider;
 import com.mrleonardos.codecore.api.client.image.ImageLimits;
 import com.mrleonardos.codecore.api.client.image.ImageSource;
+import com.mrleonardos.codecore.internal.client.HttpConnections;
 import com.mrleonardos.codecore.internal.client.LimitedStream;
 
 /**
@@ -32,17 +32,19 @@ import com.mrleonardos.codecore.internal.client.LimitedStream;
  * Ответ читается с тем же потолком, что и картинки: адрес приходит от сервера, и бесконечный поток json
  * с подконтрольного ему хоста иначе съел бы память клиента. Таймаут чтения тут не помогает, он считает
  * паузу между байтами.
+ *
+ * <p>
+ * Неудачный запрос не запоминается навсегда: как у картинок, адрес не трогается пять минут, потом
+ * попытка повторяется. Поднятый тем временем сервис подхватывается без перезахода.
  */
 final class JsonEndpointProvider implements AvatarProvider {
 
     private static final String PATH_SEPARATOR = "\\.";
-    private static final String USER_AGENT_HEADER = "User-Agent";
-    private static final String USER_AGENT = "CodeCore";
-    private static final int HTTP_OK = 200;
     private static final int MAX_RESPONSE_BYTES = 64 * 1024;
 
     private final Map<String, String> resolved = new ConcurrentHashMap<>();
     private final Map<String, Boolean> pending = new ConcurrentHashMap<>();
+    private final Map<String, Long> failedAt = new ConcurrentHashMap<>();
     private final String template;
     private final String jsonPath;
     private final Executor workers;
@@ -64,7 +66,13 @@ final class JsonEndpointProvider implements AvatarProvider {
 
         String address = resolved.get(key);
         if (address != null) {
-            return address.isEmpty() ? null : safeSource(address);
+            if (!address.isEmpty()) {
+                return safeSource(address);
+            }
+            if (retryNotDue(key)) {
+                return null;
+            }
+            resolved.remove(key);
         }
         if (pending.putIfAbsent(key, Boolean.TRUE) == null) {
             workers.execute(() -> resolve(key, playerId, playerName));
@@ -75,23 +83,33 @@ final class JsonEndpointProvider implements AvatarProvider {
     private void resolve(String key, UUID playerId, String playerName) {
         try {
             String endpoint = AvatarPlaceholders.apply(template, playerId, playerName);
-            resolved.put(key, ImageSource.allowed(endpoint) ? extract(request(endpoint)) : "");
+            remember(key, ImageSource.allowed(endpoint) ? extract(request(endpoint)) : "");
         } catch (Exception failure) {
             log.warn("Avatar endpoint failed for {}: {}", key, failure.toString());
-            resolved.put(key, "");
+            remember(key, "");
         } finally {
             pending.remove(key);
         }
     }
 
+    private boolean retryNotDue(String key) {
+        Long failure = failedAt.get(key);
+        return failure != null && System.currentTimeMillis() - failure.longValue() < ImageLimits.RETRY_AFTER_FAILURE_MS;
+    }
+
+    private void remember(String key, String address) {
+        if (address.isEmpty()) {
+            failedAt.put(key, Long.valueOf(System.currentTimeMillis()));
+        } else {
+            failedAt.remove(key);
+        }
+        resolved.put(key, address);
+    }
+
     private JsonElement request(String endpoint) throws IOException {
-        ImageLimits limits = ImageLimits.current();
-        HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-        connection.setConnectTimeout(limits.connectTimeoutMs());
-        connection.setReadTimeout(limits.readTimeoutMs());
-        connection.setRequestProperty(USER_AGENT_HEADER, USER_AGENT);
+        HttpURLConnection connection = HttpConnections.open(endpoint);
         try {
-            if (connection.getResponseCode() != HTTP_OK) {
+            if (connection.getResponseCode() != HttpConnections.HTTP_OK) {
                 throw new IOException("Unexpected response " + connection.getResponseCode() + " from " + endpoint);
             }
             try (InputStream stream = connection.getInputStream()) {

@@ -74,9 +74,12 @@ public final class CommandBridge implements ICommand {
         }
 
         if (node.action() == null) {
-            throw new CommandException(
-                node.children()
-                    .isEmpty() ? usageOf(node) : CommandMessages.UNKNOWN_SUBCOMMAND);
+            if (!node.children()
+                .isEmpty()) {
+                throw new CommandException(CommandMessages.UNKNOWN_SUBCOMMAND);
+            }
+            throw node.usageKey() != null ? new CommandException(node.usageKey())
+                : new CommandException(CommandMessages.USAGE, commandPath(root, args, cursor));
         }
 
         try {
@@ -151,13 +154,16 @@ public final class CommandBridge implements ICommand {
                     spec.name(),
                     spec.type()
                         .parse(join(args, cursor)));
-                break;
+                return values;
             }
             values.put(
                 spec.name(),
                 spec.type()
                     .parse(args[cursor]));
             cursor++;
+        }
+        if (cursor < args.length) {
+            throw new CommandException(CommandMessages.UNKNOWN_SUBCOMMAND);
         }
         return values;
     }
@@ -182,8 +188,14 @@ public final class CommandBridge implements ICommand {
         return null;
     }
 
-    private static String usageOf(CommandNode node) {
-        return node.usageKey() != null ? node.usageKey() : CommandMessages.USAGE;
+    /** Путь пройденных слов: им заполняется запасной ключ справки, когда у узла нет своего. */
+    private static String commandPath(CommandNode root, String[] args, int matched) {
+        StringBuilder path = new StringBuilder("/").append(root.name());
+        for (int index = 0; index < matched; index++) {
+            path.append(' ')
+                .append(args[index]);
+        }
+        return path.toString();
     }
 
     private static boolean startsWith(String candidate, String partial) {

@@ -20,7 +20,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.mrleonardos.codecore.api.config.AuditSettings;
 import com.mrleonardos.codecore.api.config.Comment;
+import com.mrleonardos.codecore.api.config.ConfigFile;
 import com.mrleonardos.codecore.api.config.ConfigRoles;
+import com.mrleonardos.codecore.api.config.ConfigScope;
+import com.mrleonardos.codecore.api.config.ConfigSpec;
 import com.mrleonardos.codecore.api.config.SectionSpec;
 import com.mrleonardos.codecore.api.config.StorageSettings;
 import com.mrleonardos.codecore.internal.CoreSections;
@@ -83,7 +86,9 @@ class MainConfigTest {
         + "maxSize = 512\n"
         + "# Сколько картинок держать в памяти клиента.\n"
         + "maxHandles = 256\n"
+        + "# Сколько ждать соединения при загрузке картинки, миллисекунды.\n"
         + "connectTimeoutMs = 5000\n"
+        + "# Сколько ждать данных от отвечающего сервера, миллисекунды.\n"
         + "readTimeoutMs = 10000\n"
         + "\n"
         + "# Надписи поверх экрана. Строку над хотбаром рисует клиент с CodeCore, чужой клиент её не увидит.\n"
@@ -92,23 +97,9 @@ class MainConfigTest {
         + "# Мод просит своё окно, но меньше этого числа оно не станет.\n"
         + "actionBarRepeatSeconds = 3\n"
         + "\n"
-        + "# Базы данных. Записей сколько нужно, каждая независимая.\n"
-        + "# Драйвер админ кладёт в mods/ или libs/ сам, ядро грузит класс по имени.\n"
-        + "# [[databases]]\n"
-        + "# id = \"global\"\n"
-        + "# label = \"global\"\n"
-        + "# driverClass = \"org.mariadb.jdbc.Driver\"\n"
-        + "# url = \"jdbc:mariadb://10.0.0.5:3306/mymods\"\n"
-        + "# user = \"mymods\"\n"
-        + "# password = \"secret\"\n"
-        + "# poolSize = 8\n"
-        + "# connectionTimeoutMs = 5000\n"
-        + "# queryTimeoutMs = 10000\n"
-        + "# idleTimeoutSeconds = 60\n"
-        + "\n"
-        + "# Какую запись брать, когда меток с одним именем несколько.\n"
-        + "# [labelDefaults]\n"
-        + "# server = \"local\"\n";
+        + "# Базы данных модов лежат в core/core-databases.toml, а не в этом файле.\n"
+        + "# Каждая база это [databases.<имя>] с ключом role и настройками соединения;\n"
+        + "# какую брать, когда метку роли носят несколько, решает [roleDefaults].\n";
 
     @TempDir
     Path configDirectory;
@@ -350,6 +341,56 @@ class MainConfigTest {
         assertTrue(text().contains("myOwnKey = 7"), text());
     }
 
+    @Test
+    @DisplayName("секция, чей валидатор сорвался, откатывается к значениям по умолчанию")
+    void sectionRejectedByItsValidatorFallsBackToDefaults() throws IOException {
+        writeMain("schemaVersion = 1\n[broken]\nvalue = 5\n");
+        LogCapture capture = LogCapture.attach(LOG);
+
+        try {
+            ConfigServiceImpl service = service();
+            ConfigFile<BrokenSection> section = service.section(
+                SectionSpec.of("broken", BrokenSection.class)
+                    .validator(value -> { throw new IllegalStateException("значение не то"); })
+                    .build());
+
+            assertEquals(9, section.get().value, "работа идёт на значениях по умолчанию");
+            assertTrue(
+                capture.text()
+                    .contains("Section broken of the main config was rejected by its validator"),
+                capture.text());
+        } finally {
+            capture.detach();
+        }
+    }
+
+    @Test
+    @DisplayName("счётчик перезагрузки не считает файлы состояния мира, пока мира нет")
+    void reloadCountSkipsWorldStateFiles() {
+        ConfigServiceImpl service = service();
+        service.open(
+            ConfigSpec.of("codetest", "settings", EconomySection.class)
+                .role(ConfigRoles.CORE)
+                .build());
+        service.open(
+            ConfigSpec.of("codetest", "state", EconomySection.class)
+                .role(ConfigRoles.CORE)
+                .scope(ConfigScope.WORLD_STATE)
+                .build());
+        LogCapture capture = LogCapture.attach(LOG);
+
+        try {
+            service.reloadAll();
+
+            assertTrue(
+                capture.text()
+                    .contains("Reloaded 1 config file(s) and the main config"),
+                capture.text());
+        } finally {
+            capture.detach();
+        }
+    }
+
     private ConfigServiceImpl service() {
         return new ConfigServiceImpl(new ConfigPaths(configDirectory), LOG);
     }
@@ -383,5 +424,10 @@ class MainConfigTest {
 
         @Comment("Сколько домов у игрока без личного лимита из меты.")
         public int homes = 3;
+    }
+
+    public static final class BrokenSection {
+
+        public int value = 9;
     }
 }

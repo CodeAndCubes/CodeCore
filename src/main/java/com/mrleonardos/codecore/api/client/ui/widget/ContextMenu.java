@@ -43,8 +43,8 @@ public final class ContextMenu {
             width = Math.max(width, painter.textWidth(item.label()) + PADDING * 2);
         }
 
-        left = Math.min(x, screenWidth - width - SCREEN_MARGIN);
-        top = Math.min(y, screenHeight - height() - SCREEN_MARGIN);
+        left = Math.max(SCREEN_MARGIN, Math.min(x, screenWidth - width - SCREEN_MARGIN));
+        top = Math.max(SCREEN_MARGIN, Math.min(y, screenHeight - height() - SCREEN_MARGIN));
         open = true;
     }
 

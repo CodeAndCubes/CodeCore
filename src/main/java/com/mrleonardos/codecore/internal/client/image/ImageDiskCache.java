@@ -19,8 +19,8 @@ import com.mrleonardos.codecore.api.client.image.ImageRequest;
  *
  * <p>
  * Хранится результат обработки, а не исходник: он уже нужного размера, всегда png и читается мгновенно.
- * Имя файла — хэш от источника вместе с размером, поэтому один и тот же аватар в двух размерах не путается
- * сам с собой.
+ * Имя файла собирается из адреса, размера и способа вписывания с префиксом формата, поэтому один и тот же
+ * аватар в двух размерах не путается сам с собой, а смена формата ключа не читает чужие файлы.
  */
 final class ImageDiskCache {
 
@@ -29,6 +29,8 @@ final class ImageDiskCache {
     private static final String EXTENSION = ".png";
     private static final int NAME_LENGTH = 32;
     private static final int HEX = 16;
+    private static final String KEY_VERSION = "v1";
+    private static final char KEY_SEPARATOR = '\n';
 
     private final Path directory;
 
@@ -57,7 +59,18 @@ final class ImageDiskCache {
     }
 
     private Path fileFor(ImageRequest request) {
-        return directory.resolve(name(request.toString()) + EXTENSION);
+        return directory.resolve(name(key(request)) + EXTENSION);
+    }
+
+    private static String key(ImageRequest request) {
+        return KEY_VERSION + KEY_SEPARATOR
+            + request.source()
+                .value()
+            + KEY_SEPARATOR
+            + request.size()
+            + KEY_SEPARATOR
+            + request.fit()
+                .name();
     }
 
     private static String name(String key) {

@@ -129,7 +129,7 @@ public final class ImageServiceImpl implements ImageService {
             BufferedImage ready = prepared;
             scheduler.onClientThread(() -> publish(request, handle, ready));
         } catch (Exception failure) {
-            log.warn("Image {} could not be loaded: {}", request, failure.toString());
+            log.warn("Image {} could not be loaded: {}", describe(request), failure.toString());
             handle.failed(System.currentTimeMillis());
         }
     }
@@ -145,6 +145,15 @@ public final class ImageServiceImpl implements ImageService {
             return;
         }
         textures.release(uploaded);
+    }
+
+    private static String describe(ImageRequest request) {
+        return request.source()
+            .value() + " "
+            + request.size()
+            + "px "
+            + request.fit()
+                .name();
     }
 
     private static ImageRequest withinLimits(ImageRequest request) {

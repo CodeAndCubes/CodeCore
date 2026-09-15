@@ -61,10 +61,15 @@ public final class AvatarServiceImpl implements AvatarService {
         }
         configured = build(config);
         size = config.size();
-        log.info("Avatars are taken from {}", configured == null ? AvatarConfig.PROVIDER_NONE : config);
+        log.info("Avatars are taken from {}", describe(config));
     }
 
-    /** Сервер отключился: его источник аватаров вместе с накопленными адресами больше не действует. */
+    /**
+     * Сервер отключился: его источник аватаров вместе с накопленными адресами больше не действует.
+     *
+     * <p>
+     * Зовётся из клиентского тика при выходе с сервера, поэтому поля видны рисующему коду без синхронизации.
+     */
     public void reset() {
         if (configured == null) {
             return;
@@ -114,6 +119,12 @@ public final class AvatarServiceImpl implements AvatarService {
             return remote(config) ? new JsonEndpointProvider(config.url(), config.jsonPath(), workers, log) : null;
         }
         return new LocalFolderProvider(folderOf(config));
+    }
+
+    private static String describe(AvatarConfig config) {
+        String place = config.url()
+            .isEmpty() ? config.folder() : config.url();
+        return config.provider() + (place.isEmpty() ? "" : " " + place);
     }
 
     private boolean remote(AvatarConfig config) {

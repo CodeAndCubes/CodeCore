@@ -26,7 +26,9 @@ public final class ImagesSection {
     @Comment("Сколько картинок держать в памяти клиента.")
     public int maxHandles = ImageLimits.MAX_HANDLES;
 
+    @Comment("Сколько ждать соединения при загрузке картинки, миллисекунды.")
     public int connectTimeoutMs = ImageLimits.CONNECT_TIMEOUT_MS;
 
+    @Comment("Сколько ждать данных от отвечающего сервера, миллисекунды.")
     public int readTimeoutMs = ImageLimits.READ_TIMEOUT_MS;
 }
