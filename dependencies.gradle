@@ -1,5 +1,5 @@
 dependencies {
-    compileOnly 'com.mrleonardos:codesides:1.0.0'
+    compileOnly 'com.mrleonardos:codesides:1.1.0'
 
     shadowImplementation 'com.twelvemonkeys.imageio:imageio-webp:3.9.4'
 
@@ -11,7 +11,7 @@ dependencies {
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'com.mrleonardos:codesides:1.0.0'
+    testImplementation 'com.mrleonardos:codesides:1.1.0'
     testImplementation 'org.ow2.asm:asm-debug-all:5.0.3'
 
     // Драйверы только для тестов, в jar ядра не едут: их кладёт администратор. sqlite это настоящий
